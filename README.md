@@ -2,6 +2,10 @@
 Advanced Chrome extension for locking and unlocking web pages with custom schedules
 # TabTimer - Smart Website Scheduler
 
+📘 **User Guide**  
+[Read the full TabTimer User Guide](USER_GUIDE.md)
+
+
 Schedule websites to open automatically at specific times. Perfect for daily tasks, reminders, work workflows, and more!
 
 ## Features
