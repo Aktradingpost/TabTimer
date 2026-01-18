@@ -118,6 +118,12 @@ For issues or feature requests, contact: tabtimerscheduler@gmail.com
 - Bulk import and bookmark import
 - Custom colors and categories
 
+
+## Privacy Policy
+
+🔒 Your privacy matters.  
+[Read the TabTimer Privacy Policy](PRIVACY_POLICY.md)
+
 ---
 
 Made with ❤️ for productivity
