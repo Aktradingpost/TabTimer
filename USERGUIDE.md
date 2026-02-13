@@ -195,9 +195,9 @@ Organize your schedules with custom categories.
 
 TabTimer includes these default categories:
 - 📅 Daily
-- 📋 Projects
-- 📰 News
-- 💼 Work
+- 📆 Weekly
+- 🗓️ Monthly
+- 🎯 Once
 - 📌 Other
 
 ---
