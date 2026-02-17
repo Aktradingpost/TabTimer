@@ -1,7 +1,7 @@
 # TabTimer - Smart Website Scheduler
 
 <p align="center">
-  <img src="icons/icon128.png" alt="TabTimer Logo" width="128" height="128">
+  <img src="TabTimer/icons/icon128.png" alt="TabTimer Logo" width="128" height="128">
 </p>
 
 <p align="center">
