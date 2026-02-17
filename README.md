@@ -197,7 +197,8 @@ TabTimer respects your privacy:
 - No external servers or tracking
 - No data collection
 - License validation only (one-time check)
-- Open source code
+
+See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for full details.
 
 ## 🐛 Troubleshooting
 
@@ -216,9 +217,11 @@ TabTimer respects your privacy:
 - Future schedules correctly show as Active
 - Run a health check to fix existing schedules
 
-## 📄 License
+## 📄 Copyright
 
-MIT License - Feel free to modify and distribute.
+© 2026 TabTimer. All rights reserved.
+
+See [COPYRIGHT.md](COPYRIGHT.md) for terms of use.
 
 ## 🙏 Support
 
