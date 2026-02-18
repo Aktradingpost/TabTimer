@@ -233,5 +233,5 @@ See [COPYRIGHT.md](COPYRIGHT.md) for terms of use.
 
 <p align="center">
   Made with ❤️ for productivity enthusiasts<br>
-  Version 2.7.1
+  Version 2.7.3
 </p>
