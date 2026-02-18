@@ -3276,15 +3276,16 @@ function handleCsvFile(file) {
   
   if (fileName.endsWith('.csv')) {
     parseCsvFile(file);
+    document.getElementById('csvFileNameText').textContent = `📄 ${file.name}`;
+    document.getElementById('csvFileName').style.display = 'block';
   } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
     parseExcelFile(file);
+    document.getElementById('csvFileNameText').textContent = `📄 ${file.name}`;
+    document.getElementById('csvFileName').style.display = 'block';
   } else {
     showToast('Please upload a CSV or Excel file');
     return;
   }
-  
-  document.getElementById('csvFileNameText').textContent = `📄 ${file.name}`;
-  document.getElementById('csvFileName').style.display = 'block';
 }
 
 function parseCsvFile(file) {
@@ -3330,15 +3331,10 @@ function parseCSV(text) {
 }
 
 async function parseExcelFile(file) {
-  // Use SheetJS library to parse Excel
-  // First, load the library if not already loaded
+  // Use the bundled XLSX parser
   if (typeof XLSX === 'undefined') {
-    try {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
-    } catch (err) {
-      showToast('Failed to load Excel parser. Try CSV format instead.');
-      return;
-    }
+    showToast('Excel parser not loaded. Please try again or use CSV format.');
+    return;
   }
   
   const reader = new FileReader();
@@ -3346,12 +3342,32 @@ async function parseExcelFile(file) {
     try {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+      
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        showToast('No sheets found in Excel file');
+        return;
+      }
+      
+      // Get first sheet
+      const firstSheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[firstSheetName];
+      
+      // Convert to array of arrays
+      const rows = Array.isArray(sheet) ? sheet : XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      
+      if (!rows || rows.length === 0) {
+        showToast('No data found in Excel file');
+        return;
+      }
+      
       processParsedData(rows);
     } catch (err) {
+      console.error('Excel parsing error:', err);
       showToast('Error parsing Excel file: ' + err.message);
     }
+  };
+  reader.onerror = () => {
+    showToast('Error reading file');
   };
   reader.readAsArrayBuffer(file);
 }
@@ -3366,39 +3382,120 @@ function loadScript(src) {
   });
 }
 
+// Convert Excel decimal time serial (e.g. 0.354166...) to HH:MM:SS string
+function excelTimeToString(val) {
+  const num = parseFloat(val);
+  if (isNaN(num) || num < 0 || num >= 1) return null;
+  const totalSeconds = Math.round(num * 86400);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+// Convert Excel date serial number (e.g. 45717) to YYYY-MM-DD string
+function excelDateToString(val) {
+  const num = parseInt(val);
+  if (isNaN(num) || num < 1) return null;
+  const excelEpoch = new Date(1899, 11, 30);
+  const date = new Date(excelEpoch.getTime() + num * 86400000);
+  const y = date.getFullYear();
+  const mo = String(date.getMonth() + 1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return y + '-' + mo + '-' + d;
+}
+
 function processParsedData(rows) {
-  if (rows.length < 2) {
-    showToast('File must have a header row and at least one data row');
+  if (rows.length < 1) {
+    showToast('File is empty');
     return;
   }
-  
-  // First row is headers
-  const headers = rows[0].map(h => String(h).toLowerCase().trim());
+
+  // Check if first row looks like headers or data
+  const firstRow = rows[0].map(cell => String(cell || '').toLowerCase().trim());
+  const hasHeaderRow = firstRow.some(cell =>
+    ['url', 'name', 'category', 'time', 'date', 'recurring', 'repeat', 'notes'].includes(cell)
+  );
+
+  let headers;
+  let dataRows;
+
+  if (hasHeaderRow) {
+    headers = firstRow;
+    dataRows = rows.slice(1);
+  } else {
+    const firstCell = String(rows[0][0] || '').trim();
+    if (firstCell.includes('.') || firstCell.startsWith('http')) {
+      headers = ['url'];
+      dataRows = rows;
+    } else {
+      showToast('File must have a "url" column header, or contain URLs in the first column');
+      return;
+    }
+  }
+
   const urlIndex = headers.indexOf('url');
-  
   if (urlIndex === -1) {
-    showToast('File must have a "url" column');
-    return;
+    headers[0] = 'url';
   }
-  
+
+  const finalUrlIndex = headers.indexOf('url');
+  const timeIndex = headers.indexOf('time');
+  const dateIndex = headers.indexOf('date');
+
   // Parse data rows
   csvParsedData = [];
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || !row[urlIndex]) continue;
-    
-    const item = { url: String(row[urlIndex]).trim() };
-    
-    // Map other columns
-    headers.forEach((header, idx) => {
-      if (idx !== urlIndex && row[idx] !== undefined && row[idx] !== '') {
-        item[header] = String(row[idx]).trim();
+  for (let i = 0; i < dataRows.length; i++) {
+    const row = dataRows[i];
+    if (!row || row.length === 0) continue;
+
+    let urlValue = String(row[finalUrlIndex] || '').trim();
+
+    // Skip empty URLs
+    if (!urlValue) continue;
+
+    // Skip placeholder/example rows from old templates
+    if (urlValue.toLowerCase().includes('example.com')) continue;
+
+    // Add https:// if no protocol specified
+    if (!urlValue.startsWith('http://') && !urlValue.startsWith('https://')) {
+      if (urlValue.includes('.')) {
+        urlValue = 'https://' + urlValue;
+      } else {
+        continue;
+      }
+    }
+
+    const item = { url: urlValue };
+
+    // Map other columns, converting Excel serial values as needed
+    headers.forEach(function(header, idx) {
+      if (idx !== finalUrlIndex && row[idx] !== undefined && row[idx] !== '') {
+        let cellVal = String(row[idx]).trim();
+
+        // Convert Excel decimal time serial (0.0 - 0.9999) to HH:MM:SS
+        if (idx === timeIndex) {
+          const asNum = parseFloat(cellVal);
+          if (!isNaN(asNum) && asNum > 0 && asNum < 1) {
+            const converted = excelTimeToString(asNum);
+            if (converted) cellVal = converted;
+          }
+        }
+
+        // Convert Excel date serial number to YYYY-MM-DD
+        if (idx === dateIndex) {
+          const asNum = parseFloat(cellVal);
+          if (!isNaN(asNum) && asNum > 1000 && cellVal.indexOf('-') === -1) {
+            const converted = excelDateToString(asNum);
+            if (converted) cellVal = converted;
+          }
+        }
+
+        item[header] = cellVal;
       }
     });
-    
-    if (item.url && (item.url.startsWith('http://') || item.url.startsWith('https://'))) {
-      csvParsedData.push(item);
-    }
+
+    csvParsedData.push(item);
   }
   
   if (csvParsedData.length === 0) {
@@ -3407,7 +3504,7 @@ function processParsedData(rows) {
   }
   
   // Show preview
-  showCsvPreview(headers, rows.slice(1, 6)); // Show first 5 rows
+  showCsvPreview(headers, dataRows.slice(0, 5)); // Show first 5 rows
   document.getElementById('csvRowCount').textContent = csvParsedData.length;
   document.getElementById('csvPreview').style.display = 'block';
   document.getElementById('csvImportBtn').disabled = false;
@@ -3447,6 +3544,10 @@ async function importCsvData() {
   const defaultRepeatType = document.getElementById('csvRepeatType').value;
   const playSound = document.getElementById('csvPlaySound').checked;
   
+  // Get the "Apply to All" fields
+  const expirationDate = document.getElementById('csvExpirationDate').value; // YYYY-MM-DD or empty
+  const namePrefix = document.getElementById('csvNamePrefix').value.trim();
+  
   let imported = 0;
   let currentTime = defaultStartTime.getTime();
   
@@ -3479,12 +3580,20 @@ async function importCsvData() {
     // Determine repeat type
     const repeatType = item.repeat || defaultRepeatType;
     
+    // Build the schedule name
+    let scheduleName = item.name || namePrefix || '';
+    
+    // Add expiration date prefix if set
+    if (expirationDate) {
+      scheduleName = expirationDate + (scheduleName ? ' ' + scheduleName : '');
+    }
+    
     try {
       await chrome.runtime.sendMessage({
         action: 'createLock',
         lock: {
           url: item.url,
-          name: item.name || '',
+          name: scheduleName,
           category: item.category || defaultCategory,
           unlockTime: scheduleTime.toISOString(),
           recurring: isRecurring,
@@ -3508,15 +3617,19 @@ async function importCsvData() {
   document.getElementById('csvFileName').style.display = 'none';
   document.getElementById('csvPreview').style.display = 'none';
   document.getElementById('csvImportBtn').disabled = true;
+  document.getElementById('csvExpirationDate').value = '';
+  document.getElementById('csvNamePrefix').value = '';
   
   await refreshData();
 }
 
 function downloadCsvTemplate() {
   const template = `url,name,category,time,date,recurring,repeat,notes
-https://example.com/page1,Example Schedule 1,Daily,08:30:00,,true,daily,My notes here
-https://example.com/page2,Example Schedule 2,Weekly,09:00:00,2025-03-01,true,weekly,
-https://example.com/page3,One Time Event,Once,10:00:00,2025-12-31,false,,Special event`;
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,`;
 
   const blob = new Blob([template], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
