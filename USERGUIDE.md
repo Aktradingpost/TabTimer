@@ -1,512 +1,370 @@
 # TabTimer User Guide
-
-Complete guide to using TabTimer - Smart Website Scheduler (v2.7.1)
+**Version 2.7.5**
 
 ---
 
 ## Table of Contents
+1. [How TabTimer Works](#how-tabtimer-works)
+2. [Getting Started](#getting-started)
+3. [Adding a Schedule](#adding-a-schedule)
+4. [The Schedule Dialog](#the-schedule-dialog)
+5. [Never Lock vs Lock Overlay](#never-lock-vs-lock-overlay)
+6. [Auto-Close Tab](#auto-close-tab)
+7. [Notification Reminder](#notification-reminder)
+8. [Managing Schedules](#managing-schedules)
+9. [Repeat Options — Free vs Premium](#repeat-options)
+10. [Bulk Import (Premium)](#bulk-import)
+11. [CSV / Excel Import](#csv--excel-import)
+12. [Custom Categories (Premium)](#custom-categories)
+13. [Settings](#settings)
+14. [Backup & Sync](#backup--sync)
+15. [What Happens When Trial Expires](#what-happens-when-trial-expires)
+16. [Keyboard Shortcuts](#keyboard-shortcuts)
+17. [Troubleshooting](#troubleshooting)
 
-1. [Getting Started](#getting-started)
-2. [Creating Schedules](#creating-schedules)
-3. [Managing Schedules](#managing-schedules)
-4. [Selection & Bulk Actions](#selection--bulk-actions)
-5. [Repeat Options](#repeat-options)
-6. [Lock Overlay & Temporary Unlock](#lock-overlay--temporary-unlock)
-7. [Notes Feature](#notes-feature)
-8. [Settings](#settings)
-9. [Backup & Sync](#backup--sync)
-10. [Advanced Search](#advanced-search)
-11. [CSV/Excel Import](#csvexcel-import)
-12. [Premium Features](#premium-features)
-13. [Keyboard Shortcuts](#keyboard-shortcuts)
-14. [Troubleshooting](#troubleshooting)
-15. [FAQ](#faq)
+---
+
+## How TabTimer Works
+
+Understanding this will save you a lot of confusion.
+
+### TabTimer requires Chrome to be open
+
+TabTimer is a Chrome extension. It uses Chrome's built-in alarm system to fire at scheduled times. **Chrome must be running for your schedules to open.**
+
+If Chrome is closed at 8:30 AM when your schedule is set to fire, the tab will not open at 8:30 AM. TabTimer has a **grace period** (default 1 hour). When you open Chrome within that grace period, it catches up and opens any missed tabs automatically.
+
+### TabTimer only works in the correct Chrome profile
+
+Chrome supports multiple profiles. Each profile has its own set of extensions and its own TabTimer data. **If you are on a different Chrome profile, your schedules will not fire.**
+
+| Situation at scheduled time | What happens |
+|---|---|
+| Chrome open, correct profile active | ✅ Tab opens on schedule |
+| Chrome open, different profile active | ❌ Does not open |
+| Chrome closed | ❌ Does not open |
+| Firefox, Edge, or Safari open instead | ❌ Does not open |
+| Return to correct profile within grace period | ⏰ Opens when you switch back |
+| Return after grace period has passed | ⏰ Opens at next scheduled occurrence |
+
+### Grace period
+
+The grace period (default 1 hour, adjustable in Settings) is how long after the scheduled time TabTimer will still open a missed tab. Example with 1-hour grace period:
+
+- Schedule at 8:30 AM, open Chrome at 9:15 AM → tab **will** open
+- Schedule at 8:30 AM, open Chrome at 9:29 AM → tab **will** open
+- Schedule at 8:30 AM, open Chrome at 9:31 AM → tab **will not** open (next occurrence fires instead)
+
+### Tip for sweepstakes users
+
+For time-sensitive contest entries, keep Chrome open and stay on your TabTimer profile. If you need to switch profiles, switch back before the grace period expires.
 
 ---
 
 ## Getting Started
 
-### First Launch
+After installing TabTimer from the Chrome Web Store:
 
-1. **Install TabTimer** from the Chrome Web Store or load it manually
-2. **Pin the extension** - Click the puzzle piece icon in Chrome, then pin TabTimer
-3. **Open the management page** - Click the TabTimer icon → "Open TabTimer" (or press `Alt+O`)
-
-### Interface Overview
-
-The management page has several sections:
-
-- **Header** - Shows status (Active/Paused), theme toggle, shortcuts, and license
-- **Sidebar** - Navigation, quick filters, and category filters
-- **Main Area** - Schedule list, add new, bulk import, settings, etc.
-- **Bulk Actions Bar** - Appears when schedules are selected
+1. Click the TabTimer icon in your toolbar
+2. Click **Open TabTimer** to open the management page
+3. Add your first schedule using any method below
 
 ---
 
-## Creating Schedules
+## Adding a Schedule
 
 ### Method 1: Right-Click on Any Page
-
 1. Navigate to the website you want to schedule
 2. Right-click anywhere on the page
-3. Select **🕐 TabTimer → 📅 Schedule this page**
-4. A dialog appears with options:
-   - **Category** - Organize your schedule
-   - **Name** - Give it a descriptive name
-   - **Open at** - Choose from smart suggestions or set custom time
-   - **Repeat** - One-time or recurring
-   - **Auto re-lock** - How long before page re-locks after manual unlock
-   - **Play sound** - Audio notification when tab opens
-5. Click **Schedule**
+3. Select **TabTimer → Schedule this page**
+4. Fill in the schedule dialog and click **Schedule**
 
-### Method 2: Keyboard Shortcut
+### Method 2: Keyboard Shortcut (Alt+L)
+Press **Alt+L** on any webpage to open the schedule dialog directly on the page.
 
-1. On any webpage, press **Alt+L**
-2. The same scheduling dialog appears
-3. Fill in details and click Schedule
+### Method 3: Quick Schedule
+Right-click any page and choose:
+- **⚡ Quick: Tomorrow at 7 AM** — daily recurring
+- **⚡ Quick: 1 hour from now** — one-time
 
-### Method 3: Add New (Management Page)
+### Method 4: Add New (Management Page)
+1. Press **Alt+O** or click the toolbar icon
+2. Click **Add New** in the left sidebar
+3. Fill in the form and click **Create Schedule**
 
-1. Open TabTimer management (`Alt+O`)
-2. Click **+ Add New** in the sidebar
-3. Enter the URL manually
-4. Fill in all schedule details
-5. Click **Create Schedule**
+---
 
-### Method 4: Bulk Import (Premium)
+## The Schedule Dialog
 
-See [CSV/Excel Import](#csvexcel-import) section for detailed instructions.
+Available via right-click, Alt+L, or the Add New form:
+
+| Field | Description |
+|---|---|
+| **URL** | Pre-filled with the current page address |
+| **Category** | Choose from your categories — custom ones appear here too |
+| **Name** | Label for the schedule. Names starting with YYYY-MM-DD auto-delete after that date |
+| **Open at** | Smart time suggestions or enter a custom date and time |
+| **Repeat Schedule** | How often the page opens. Free: None, Daily, Weekly, Monthly, Yearly. Premium options show a PRO badge |
+| **Auto re-lock** | How long before the page re-locks after unlocking. Default is Never |
+| **Auto-close tab** | Automatically close the tab after X minutes |
+| **Play sound** | Audio alert when the tab opens |
+
+---
+
+## Never Lock vs Lock Overlay
+
+### Never Lock (Default)
+By default, TabTimer opens pages like any normal browser tab — no overlay, no countdown.
+
+### Lock Overlay
+The lock overlay is optional. It shows a countdown and prevents accidental interaction before you are ready.
+
+**To add a lock to a single schedule:**
+Choose a time under **Auto re-lock after unlocking** in the schedule dialog.
+
+**To set the default for all new schedules:**
+Settings → Default auto re-lock after unlocking → Never → Save Settings.
+
+**When the lock overlay shows:**
+- **Unlock Now** — access the page immediately
+- **5 / 15 / 30 / 60 min** — temporary access, auto-relocks after that time
+- **Hide Overlay** — dismiss without unlocking
+
+---
+
+## Auto-Close Tab
+
+Available in the right-click dialog, Add New form, and Edit modal.
+
+Check **⏱️ Auto-close tab after opening** and enter the number of minutes. The tab closes automatically after that time.
+
+Useful for contest entries where you want the tab to open, you do your entry, and it closes itself.
+
+The schedule list shows **⏱️ Auto-close: X min** on any schedule that has this enabled.
+
+---
+
+## Notification Reminder
+
+TabTimer can alert you X seconds before a tab is about to open so you are ready at your screen.
+
+**To set it up:**
+Settings → Notification reminder → enter number of seconds (default 10) → Save Settings.
+
+- Set to **0** to disable advance reminders entirely
+- Set to **10** for a 10-second heads-up
+- Set to **60** for a 1-minute warning
+- Set to **300** for a 5-minute warning
+
+**Important:** When a reminder fires, the tab-open notification is automatically suppressed. You will only ever get **one** notification per scheduled tab open — either the reminder or the open notification, never both.
+
+If you set the reminder to 0 (disabled), you will still get a notification when the tab actually opens.
 
 ---
 
 ## Managing Schedules
 
-### Viewing Schedules
+- **Search** — filter by name or URL
+- **Filter** — sidebar: Active, Not Active, Today, Daily, Weekly, etc.
+- **Sort** — Custom Order, Time, or Name
+- **Edit** — ✏️ pencil icon
+- **Delete** — 🗑️ trash icon
+- **Select** — checkbox, or Ctrl+A for all
 
-The main schedule list shows:
-- **Color bar** - Category or custom color
-- **Checkbox** - For selection
-- **Name** - Schedule name (double-click to edit)
-- **Badges** - Recurring, category, 🔊 sound, 📝 notes
-- **URL** - The scheduled website
-- **Status** - Opens time, re-lock setting, open count
-- **Action buttons** - Resolve URL, Duplicate, Edit, Delete
+### What the schedule list shows for each item
 
-### Quick Filters
+- ⏰ Opens / ✅ Opened — next or last open time
+- 🔓 Re-lock — Never or minutes
+- ⏱️ Auto-close — only shown if enabled, shows minutes
+- 📊 Nx — how many times it has opened
+- 🔄 Next — next occurrence date and repeat type
+- 🔊 — sound is enabled
+- 📝 Notes — click to view
 
-Use sidebar filters to find schedules:
-- **Active** - Schedules waiting to open
-- **Not Active** - Already opened/unlocked
-- **Today** - Scheduled for today
-- **Daily/Weekly/Monthly/Once/Other** - By category
-
-### Searching
-
-1. Use the search box at the top of the schedule list
-2. Searches name, URL, and resolved URLs
-3. Click **🔍** for Advanced Search
-
-### Sorting
-
-Use the sort dropdown to order schedules:
-- **Custom Order** - Drag and drop (Premium)
-- **Time (Soon-Late)** - Nearest first
-- **Time (Late-Soon)** - Furthest first
-- **Name (A-Z / Z-A)**
-- **URL (A-Z / Z-A)**
-
-### Editing a Schedule
-
-1. Click the **✏️ Edit** button on any schedule
-2. Modify any field in the Edit modal
-3. Click **Save Changes**
-
-**Quick Edit:** Double-click a schedule name to edit it inline.
-
----
-
-## Selection & Bulk Actions
-
-### Selecting Schedules
-
-| Method | How |
-|--------|-----|
-| Single | Click the checkbox |
-| Range | Click first, then **Shift+Click** last |
-| Multiple | **Ctrl+Click** (or **Cmd+Click** on Mac) individual items |
-| All | Press **Ctrl+A** or click "Select All" |
-| Deselect | Press **Esc** |
-
-**Tip:** You can Shift+Click or Ctrl+Click anywhere on the schedule row, not just the checkbox.
-
-### Bulk Actions Bar
-
-When schedules are selected, a bar appears at the bottom with:
-
-- **Resolve URLs** - Capture final URLs after redirects
-- **Open All Selected** - Open all selected tabs now
-- **Reschedule** (Premium) - Set new time for all selected
-- **Shift Time** (Premium) - Move times forward/backward
-- **Duplicate** - Copy all selected
-- **Delete** - Remove all selected
-- **Clear** - Deselect all
+### Bulk Actions
+Select schedules to see the bulk bar:
+- **Open All** — opens selected URLs now
+- **Reschedule** — set new time with stagger (Premium)
+- **Shift Time** — move schedules forward or backward (Premium)
+- **Duplicate** — copy selected
+- **Delete** — remove selected
 
 ---
 
 ## Repeat Options
 
-### Available Repeat Types
-
-| Type | Description |
-|------|-------------|
-| No Repeat | Opens once at scheduled time |
-| Daily | Every day at the same time |
-| Weekdays | Monday through Friday |
-| Weekends | Saturday and Sunday |
+### Free
+| Option | Description |
+|---|---|
+| No Repeat | One-time only |
+| Daily | Every day |
 | Weekly | Same day each week |
-| Biweekly | Every 2 weeks |
+| Monthly | Same date each month |
+| Yearly | Same date each year |
+
+### Premium ⭐
+| Option | Description |
+|---|---|
+| Weekdays | Monday–Friday only |
+| Weekends | Saturday–Sunday only |
+| Every 2 Weeks | Biweekly |
 | Every 3 Weeks | Every 3 weeks |
-| Monthly | Same day each month |
-| Bimonthly | Every 2 months |
+| Every 2 Months | Bimonthly |
 | Quarterly | Every 3 months |
 | Every 6 Months | Twice a year |
-| Yearly | Annual |
-| Leap Year | Every 4 years (Feb 29) |
-| Every X Minutes | Custom minute interval |
-| Every X Hours | Custom hour interval |
+| Leap Year | Every 4 years |
+| Every X Minutes | Enter any minute interval |
+| Every X Hours | Enter any hour interval |
 | Custom Days | Every X days |
-
-### How Recurring Works
-
-1. Schedule opens at the set time
-2. After auto re-lock time, it reschedules to next occurrence
-3. Original times are preserved for future occurrences
+| Specific Dates | Comma-separated list of exact dates |
 
 ---
 
-## Lock Overlay & Temporary Unlock
+## Bulk Import
 
-### Lock Overlay
+### From Text (Premium)
+Paste URLs one per line, set options, click Import.
 
-When you visit a scheduled page before its time:
-- A floating overlay appears showing countdown
-- Page is still visible but overlay reminds you to wait
-
-### Overlay Options
-
-- **🔓 Unlock Now** - Permanently unlock (uses auto re-lock setting)
-- **👁️ Hide Overlay** - Hide the overlay temporarily
-- **🔓 Unlock temporarily for:** - Access page for a set time:
-  - 5 minutes
-  - 15 minutes
-  - 30 minutes
-  - 1 hour
-- **⏰ Lock for 24 More Hours** - Extend the lock
-
-### Temporary Unlock (Snooze)
-
-The "Unlock temporarily" buttons let you access the page NOW for the selected duration. After the time expires, the lock automatically re-engages. This is perfect for:
-- Quick checks without permanently unlocking
-- Taking a short break to view the content
-- Accessing the page when you need it early
+### From Bookmarks (Premium)
+Pick a bookmark folder, set options, click Import from Folder.
 
 ---
 
-## Notes Feature
+## CSV / Excel Import
 
-### Adding Notes (Premium)
+Go to **Bulk Import → From CSV/Excel**. Supported: `.csv`, `.xlsx`, `.xls`
 
-1. Click **✏️ Edit** on any schedule
-2. Scroll down to the **📝 Notes** field
-3. Enter your notes (reminders, instructions, etc.)
-4. Click **Save Changes**
+| Column | Required | Notes |
+|---|---|---|
+| `url` | ✅ | Website address |
+| `name` | No | Schedule label |
+| `category` | No | Category name |
+| `time` | No | HH:MM:SS — Excel decimals auto-converted |
+| `date` | No | YYYY-MM-DD — Excel serials auto-converted |
+| `recurring` | No | true or false |
+| `repeat` | No | daily, weekly, monthly, etc. |
+| `notes` | No | Notes text |
 
-### Viewing Notes
+Click **Download template CSV** for a blank file with correct headers.
 
-When a schedule has notes:
-- A bright yellow **📝 Notes** badge appears in the schedule list
-- **Click the badge** to open the Notes viewer
-- The Notes modal shows:
-  - Schedule name
-  - URL
-  - Full notes content (scrollable)
-- Click **Close** to dismiss
-- Click **✏️ Edit** to modify the notes
+---
+
+## Custom Categories
+
+1. Categories in sidebar → + Add Category
+2. Give it a name, emoji, and color
+3. Assign when creating or editing schedules
+
+Custom categories appear automatically in the right-click schedule dialog.
 
 ---
 
 ## Settings
 
-Access from the sidebar → **⚙️ Settings**
-
-### Notifications
-
-- **Enable notifications** - Desktop alerts when tabs open
-- **Notification reminder** - Minutes before scheduled time
-
-### Schedule Behavior
-
-- **Auto-delete after expiration** - Remove schedules with past dates in name
-- **Open tabs in background** - New tabs don't steal focus
-- **Grace period** - How long to still open missed tabs (default: 1 hour)
-- **Stagger interval** - Delay between opening multiple missed tabs (default: 15 seconds)
-
-### Defaults
-
-- **Default category** - For new schedules
-- **Default auto re-lock** - Minutes (0 = Never)
-- **Timezone** - Your local timezone
+| Setting | Description |
+|---|---|
+| Enable notifications | Desktop popup when a tab opens |
+| **Notification reminder** | Seconds before a tab opens to send advance alert. Default 10. Set to 0 to disable |
+| Auto-delete expired | Remove schedules after date in name passes |
+| Open tabs in background | New tabs open without stealing focus |
+| **Grace period** | How long after schedule time tabs still open if Chrome was closed. Default 1 hour |
+| Stagger interval | Delay between missed tabs opening. Default 15 seconds |
+| Default category | Pre-selected for new schedules |
+| **Default auto re-lock** | Lock setting for all new schedules. Never = no overlay |
+| Timezone | Your local timezone |
+| Show How TabTimer Works notice | Re-enable the info banner if you dismissed it with Don't show again |
 
 ---
 
 ## Backup & Sync
 
-### Cloud Sync (Premium)
-
-1. Go to **Backup/Sync** in the sidebar
-2. Click **⬆️ Export for Sync**
-3. Save the JSON file to cloud storage (Google Drive, Dropbox, etc.)
-4. On another device, click **⬇️ Import from Sync**
-5. Select the file - schedules merge without duplicates
-
-### Health Check
-
-Automatically runs on startup, or manually:
-1. Go to **Backup/Sync**
-2. Click **🔍 Run Health Check**
-3. Fixes: stuck schedules, duplicates, orphaned alarms, missing fields
-
-### Auto-Backup
-
-1. Enable "Auto-Backup" in Backup/Sync
-2. Choose frequency (daily/weekly/monthly)
-3. Set how many backups to keep
+- **Export All** — downloads JSON file with all schedules
+- **Import Backup** — restores from JSON file
+- **Auto-backup** — daily, weekly, or monthly with configurable retention
+- **Cloud Sync (Premium)** — export/import across devices
+- **Health Check** — fixes stuck schedules, duplicates, orphaned alarms. Also runs on startup
 
 ---
 
-## Advanced Search
+## What Happens When Trial Expires
 
-### Opening Advanced Search
+When your 7-day trial ends and you choose not to purchase:
 
-1. Click the **🔍** button next to the sort dropdown
-2. The advanced search panel expands
-
-### Search Options
-
-**Search By:**
-- **Scheduled Time** - Filter by when tabs are set to open
-- **Expiration Date (in name)** - Filter by YYYY-MM-DD dates in schedule names
-- **Either Date** - Match if either date is in range
-
-**Date Range:**
-- **Date From** - Show schedules on or after this date
-- **Date To** - Show schedules on or before this date
-- Use the calendar picker to select dates
-
-**Status Filter:**
-- All
-- Active Only
-- Opened/Unlocked
-- Recurring Only
-- One-time Only
-
-### Saving Filters (Premium)
-
-1. Set up your desired filters
-2. Click **💾 Save Filter**
-3. Enter a name
-4. Filter appears as a clickable pill
-5. Click the pill to instantly apply that filter
-
----
-
-## CSV/Excel Import
-
-### Supported File Formats
-- **CSV** (.csv) - Comma-separated values
-- **Excel** (.xlsx, .xls) - Microsoft Excel files
-
-### How to Import
-
-1. Go to **Bulk Import** in the sidebar
-2. Click the **"From CSV/Excel"** tab
-3. Drag & drop a file or click to browse
-4. Preview shows the first 5 rows
-5. Set default options for rows without values
-6. Click **"Import from File"**
-
-### File Columns
-
-**Required:**
-- `url` - The website URL (must start with http:// or https://)
-
-**Optional:**
-- `name` - Schedule name
-- `category` - Category (Daily, Weekly, Monthly, Once, Other)
-- `time` - Time in HH:MM or HH:MM:SS format
-- `date` - Date in YYYY-MM-DD format
-- `recurring` - true/false (or yes/no, 1/0)
-- `repeat` - daily, weekdays, weekly, monthly, yearly, etc.
-- `notes` - Notes for the schedule
-
-### Example CSV
-
-```csv
-url,name,category,time,recurring,repeat,notes
-https://example.com/daily,Morning Check,Daily,08:30:00,true,daily,Check every morning
-https://contest.com/enter,Contest Entry,Once,09:00:00,false,,Ends March 1st
-https://news.com,News Site,Daily,07:00:00,true,weekdays,Weekday mornings only
-```
-
-### Template Download
-
-Click **"📥 Download template CSV"** in the import page to get a sample file with the correct format.
-
-### Default Values
-
-If a column is missing or empty for a row:
-- **Category** - Uses the "Default Category" you select
-- **Time** - Uses the "Default Start Time" you set
-- **Recurring** - Uses the "Make recurring" checkbox
-- **Repeat** - Uses the "Default Repeat type" dropdown
-
----
-
-## Premium Features
-
-### What's Included ($10 Lifetime)
-
-| Feature | Description |
-|---------|-------------|
-| Bulk Import (Text) | Paste multiple URLs at once |
-| Bulk Import (CSV/Excel) | Import from spreadsheet files |
-| Bulk Import (Bookmarks) | Import entire bookmark folders |
-| Custom Colors | Color-code individual schedules |
-| Custom Categories | Create your own categories |
-| Cloud Sync | Sync between devices |
-| Notes | Add notes to any schedule |
-| Advanced Search | Date filters, saved filters |
-| Drag & Drop | Custom sort order |
-| Bulk Reschedule | Change time for multiple schedules |
-| Shift Time | Move times forward/backward |
-
-### Activating Premium
-
-1. Purchase a license key from the payment page
-2. Click **✨ Try Premium** in the header
-3. Enter your license key (format: TTXX-XXXX-XXXX-XXXX)
-4. Click **Activate License**
-
-### Free Trial
-
-- 7-day trial with all Premium features
-- Click **Start Free Trial** in the license modal
-- No credit card required
+1. A yellow banner lists schedules using Premium repeat types
+2. Click **Convert to Nearest Free Option** to update all at once:
+   - Weekdays → Daily
+   - Weekends → Weekly
+   - Every 2 Weeks → Weekly
+   - Quarterly → Monthly
+   - Every 6 Months → Monthly
+   - Every X Minutes/Hours → Daily
+   - Custom Days → Daily
+   - Specific Dates → No Repeat
+3. Or Dismiss to handle them manually
 
 ---
 
 ## Keyboard Shortcuts
 
-### Global (Any Page)
-
 | Shortcut | Action |
-|----------|--------|
+|---|---|
 | `Alt+L` | Schedule current page |
 | `Alt+U` | Unschedule current page |
 | `Alt+O` | Open TabTimer management |
-
-### Management Page
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+A` | Select all visible schedules |
+| `Ctrl+A` | Select all |
 | `Shift+Click` | Select range |
 | `Ctrl+Click` | Add/remove from selection |
 | `Del` | Delete selected |
 | `Ctrl+D` | Duplicate selected |
 | `Ctrl+N` | New schedule |
-| `Ctrl+F` | Focus search box |
-| `Ctrl+T` | Toggle dark/light theme |
-| `Ctrl+P` | Pause/Resume all schedules |
-| `Esc` | Deselect all / Close modal |
-| `?` | Show keyboard shortcuts |
+| `Ctrl+F` | Focus search |
+| `Ctrl+T` | Toggle theme |
+| `Ctrl+P` | Pause/Resume all |
+| `Esc` | Deselect / Close modal |
+| `?` | Show shortcuts help |
 
 ---
 
 ## Troubleshooting
 
-### Schedules Not Opening
+**Schedule didn't open at the right time**
+Was Chrome open? Were you on the correct Chrome profile? Check grace period in Settings. Run Health Check.
 
-1. **Was Chrome open?** - TabTimer only works when Chrome is running
-2. **Check grace period** - Default is 1 hour; tabs open if Chrome starts within this window
-3. **Check pause status** - Header shows "⏸️ Paused" if paused
-4. **Run health check** - Fixes stuck schedules
-5. **Check the time** - Verify schedule time and timezone
+**Tabs opened when I switched back to my profile**
+Expected — TabTimer caught up on missed schedules within the grace period. Reduce grace period in Settings if you don't want catch-up opens.
 
-### All Tabs Open at Once
+**I switched profiles and my schedules disappeared**
+They are still there. Switch back to the original Chrome profile.
 
-- Increase "Stagger interval" in Settings (default: 15 seconds)
-- Tabs open one at a time with this delay between each
+**Wrong time showing in the Edit form**
+Fixed in v2.7.5. Edit form now shows your local time. Recurring schedules auto-advance to next upcoming time.
 
-### Sound Not Playing
+**Pages locking when I don't want them to**
+Settings → Default auto re-lock → Never → Save Settings. Delete and re-add schedules created before this change.
 
-1. Verify "Play sound" is checked for the schedule
-2. Check system volume isn't muted
-3. Extension uses offscreen audio for reliability
+**Getting two notifications for one tab**
+Fixed in v2.7.5. If a reminder is set, the tab-open notification is now suppressed.
 
-### CSV Import Not Working
+**Every X Hours saving the wrong number**
+Fixed in v2.7.5. Delete and recreate any schedules affected by this.
 
-1. Make sure file has a `url` column header
-2. URLs must start with `http://` or `https://`
-3. Check the preview to ensure data is parsed correctly
-4. Try downloading the template and using that format
+**Import showing wrong data**
+Make sure first column header is exactly `url` (lowercase). Use the Download Template button.
 
-### Notes Badge Not Clickable
+**Premium repeat option blocked**
+Click the PRO badge to start your free 7-day trial — no credit card needed.
 
-- Click directly on the yellow **📝 Notes** badge
-- The badge opens a viewer; click **✏️ Edit** to modify
-
----
-
-## FAQ
-
-**Q: Does TabTimer work when Chrome is closed?**
-A: No, Chrome must be running. However, if you open Chrome within the grace period (default 1 hour), missed tabs will still open with staggered timing.
-
-**Q: Can I schedule the same URL multiple times?**
-A: Yes! You can have multiple schedules for the same URL at different times.
-
-**Q: What happens to recurring schedules when I'm away?**
-A: If you miss the schedule and the grace period passes, it automatically moves to the next occurrence at the original time.
-
-**Q: Is my data sent anywhere?**
-A: No, all data is stored locally in Chrome. Cloud sync only works by exporting/importing files you control.
-
-**Q: Can I use TabTimer on multiple computers?**
-A: Yes! Use Cloud Sync (Premium) to export from one device and import on another.
-
-**Q: What's the "date in name" feature?**
-A: If your schedule name starts with a date (e.g., "2025-12-31 New Year Event"), it auto-deletes after that date. You can also search by this date using Advanced Search.
-
-**Q: How do I completely reset TabTimer?**
-A: Go to `chrome://extensions/`, find TabTimer, click Details → Clear site data.
-
-**Q: Can I schedule pages that require login?**
-A: Yes, but you must be logged in when the tab opens. TabTimer just opens the URL.
-
-**Q: What's the difference between "Unlock Now" and "Unlock temporarily"?**
-A: "Unlock Now" uses your auto re-lock setting (default 5 min). "Unlock temporarily" lets you choose exactly how long (5/15/30/60 min) before the lock re-engages.
-
-**Q: Can I import from Google Sheets?**
-A: Yes! Export your Google Sheet as CSV, then import using the CSV/Excel import feature.
+**Trial expired and schedules stopped working**
+Open TabTimer management — banner lists affected schedules. Click Convert to Nearest Free Option.
 
 ---
 
 ## Support
 
-- **GitHub Issues** - Report bugs or request features
-- **Email** - TabTimerPro@gmail.com
+📧 **Email:** TabTimerPro@gmail.com
+🐛 **Bug reports:** Open a GitHub issue
+💡 **Feature requests:** Open a GitHub issue with "Feature:" in the title
 
 ---
 
-*Thank you for using TabTimer! Version 2.7.1*
+*TabTimer v2.7.5 — Made with ❤️ for the sweepstakes and productivity community*

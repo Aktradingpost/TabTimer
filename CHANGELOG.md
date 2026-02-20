@@ -1,169 +1,85 @@
 # TabTimer Changelog
 
-All notable changes to TabTimer will be documented in this file.
+---
+
+## v2.7.5 — February 2026
+
+### New Features
+- **Auto-close in right-click dialog** — the "Auto-close tab after opening" option is now available when scheduling via right-click on any page, matching what was already available in the Add New form and Edit modal. All three entry points are now consistent
+- **Advance notification reminder** — get a notification X seconds before a scheduled tab opens (default 10 seconds). Set to 0 in Settings to disable. Only one notification fires per tab open — if the reminder was sent, the tab-open notification is suppressed
+- **Notification reminder in seconds** — the reminder setting changed from minutes to seconds for finer control (e.g. 10 seconds, 30 seconds, 2 minutes = 120)
+
+### Bug Fixes
+- Fixed advance reminder notification never firing — `notifMinutes` variable was still referenced after being renamed to `notifSeconds`, causing the condition to always be false
+- Fixed tabs not opening after being edited — saving an edit now resets `opened = false` and `reminderSent = false` so the schedule fires fresh
+- Fixed edit modal showing wrong time — `toISOString()` returns UTC which showed the wrong local time in the edit form. Now correctly converts to local timezone before populating the field
+- Fixed edit modal showing a past time for recurring schedules — the edit form now auto-advances to the next future occurrence so users always see an upcoming time
+- Fixed Every X Hours and Every X Minutes saving wrong values — interval values now read directly from the visible input at save time instead of from hidden fields that could be stale
+- Fixed duplicate notifications — removed the second "Opened" notification that fired immediately when a tab opened if a reminder had already been sent for that occurrence
+- Fixed notification default changed from 5 minutes to 10 seconds
+
+### Improvements
+- Schedule list now shows **⏱️ Auto-close: X min** badge for any schedule with auto-close enabled
+- Notification reminder setting label simplified to just "Notification reminder" with "seconds before tab opens" inline label
+- Helper text added under notification reminder: "Set to 0 to disable"
 
 ---
 
-## [2.7.1] - 2026-02-17
+## v2.7.4 — February 2026
 
-### Fixed
-- CSV/Excel import category dropdown now properly populates with all categories
+### New Features
+- **Never Lock is now the default** — all new schedules open pages like normal tabs with no lock overlay
+- **Premium repeat types** — Weekdays, Weekends, and all Other options are now Premium-only with a PRO badge and trial prompt for free users
+- **Trial expiry downgrade assistant** — one-click conversion of Premium repeat schedules to nearest free option when trial expires
+- **Custom categories in right-click dialog** — categories created in management page appear in the right-click dialog automatically
+- **All repeat options in right-click dialog** — Other dropdown now includes Every X Minutes, Every X Hours, Custom Days, and Specific Dates
+- **Weekends** added to repeat options in right-click dialog
+- **How TabTimer Works notice** — info banner on schedules page explaining Chrome profile requirement, with Hide for now / Don't show again dismiss options
+- **Management page auto-refreshes** when a schedule is created from another tab
+- **getLicense message handler** in service worker for real-time premium status in right-click dialog
 
----
+### Bug Fixes
+- Fixed schedule dialog not appearing on Facebook, Instagram, and similar sites
+- Fixed management page opening unexpectedly when right-clicking on some sites
+- Fixed Excel/CSV import importing example template rows
+- Fixed Excel time values displaying as decimals instead of HH:MM:SS
+- Fixed Excel date values displaying as serial numbers instead of YYYY-MM-DD
+- Fixed Schedule/Cancel buttons becoming unresponsive after dialog was built (innerHTML replacement was destroying event listeners)
+- Fixed right-click dialog defaulting to 5-minute lock instead of Never
+- Fixed Every X Hours saving 6 hours instead of the user's chosen value — `hourlyInterval`, `minuteInterval`, `customDays`, and `specificDates` were not being saved to storage in `createLock`
+- Fixed `saveLocks` bulk handler added to service worker for batch operations
 
-## [2.7.0] - 2026-02-17
-
-### Added
-- **CSV/Excel Import** (Premium) - Import schedules from .csv, .xlsx, and .xls files
-  - Drag & drop file upload
-  - Preview imported data before confirming
-  - Download template CSV
-  - Supports columns: url, name, category, time, date, recurring, repeat, notes
-  - Smart defaults for missing values
-
----
-
-## [2.6.3] - 2026-02-17
-
-### Fixed
-- **Snooze/Temporary Unlock** - Now correctly unlocks page temporarily instead of delaying the lock
-  - "Unlock temporarily for 15 min" now lets you access the page for 15 minutes
-  - Lock automatically re-engages after the snooze period
-  - Changed label from "Snooze for" to "Unlock temporarily for" for clarity
-
----
-
-## [2.6.2] - 2026-02-17
-
-### Fixed
-- Notes modal "Edit" button now properly opens the Edit modal
+### Improvements
+- Import template downloads completely blank with no example rows
+- Default lock changed to Never across all entry points
+- Premium repeat options grouped under ⭐ Premium optgroup in Add New form
 
 ---
 
-## [2.6.1] - 2026-02-17
+## v2.7.3 — February 2026
 
-### Added
-- **Clickable Notes Badge** - Click the 📝 Notes badge to view notes without opening Edit modal
-  - Notes viewer shows schedule name, URL, and full notes content
-  - "Edit" button to modify notes directly from viewer
-
----
-
-## [2.6.0] - 2026-02-17
-
-### Added
-- **Advanced Search Improvements**
-  - "Search By" dropdown: Scheduled Time, Expiration Date (in name), or Either
-  - Search by expiration dates in schedule names (YYYY-MM-DD format)
-  - Fixed timezone issues in date filtering
+### New Features
+- CSV/Excel bulk import
+- Clickable Notes badge
+- Temporary unlock options
+- Advanced Search
+- Shift+Click selection
+- Sound notifications
+- 1-hour grace period for missed tabs
+- Staggered opening for multiple missed tabs
 
 ---
 
-## [2.5.2] - 2026-02-17
+## v2.0.0 — March 2025
 
-### Fixed
-- Import backup now correctly marks future schedules as Active (not Opened)
-- Past recurring schedules automatically reschedule to next occurrence on import
-
----
-
-## [2.5.1] - 2026-02-17
-
-### Changed
-- Notes badge now shows bright yellow background for better visibility
-
----
-
-## [2.5.0] - 2026-02-17
-
-### Added
-- **Shift+Click Range Selection** - Select multiple schedules by clicking first and shift-clicking last
-- **Ctrl+Click Multi-Selection** - Add/remove individual items from selection
-- **Click anywhere on row** to select (not just checkbox)
-- **Notes Field** (Premium) - Add notes to any schedule
-  - 📝 badge appears when schedule has notes
-  - Hover to preview, click Edit to modify
-- **Play Sound in Edit Modal** - Toggle sound when editing schedules
-- **Bottom Padding** - Last schedule no longer hidden by bulk actions bar
-
-### Changed
-- Selection shortcuts added to keyboard shortcuts modal
-
----
-
-## [2.4.0] - 2026-02-17
-
-### Fixed
-- **Sound Notifications** - Now uses Offscreen API for reliable audio playback
-  - Sounds play correctly when tabs open from bulk import
-  - Works regardless of which page is being opened
-
-### Added
-- offscreen.html and offscreen.js for audio handling
-- "offscreen" permission in manifest
-
----
-
-## [2.3.0] - 2026-02-17
-
-### Added
-- **Staggered Missed Tab Opening** - When Chrome opens late, tabs open sequentially
-  - Default 15 seconds between each tab
-  - Configurable stagger interval in Settings
-- **1-Hour Grace Period** - Default changed from 2 minutes to 1 hour
-- **0-Minute Auto Re-lock** - Can now set default to "Never" (0 minutes)
-
----
-
-## [2.2.0] - 2026-02-17
-
-### Added
-- **Schedule Health Check** - Comprehensive check on startup
-  - Fixes stuck recurring schedules
-  - Removes duplicates
-  - Clears orphaned alarms
-  - Manual trigger in Backup/Sync
-- **Cloud Sync** (Premium) - Export/import for cross-device sync
-- **Drag & Drop Reordering** - Custom sort order for schedules
-- **Advanced Search** - Date filters, status filters, saved filter presets
-
----
-
-## [2.1.0] - 2026-02-17
-
-### Added
-- Snooze button on lock overlay (5/15/30/60 minutes)
-- Sound notifications using Web Audio API
-- Pause/Resume all schedules toggle
-- Enhanced keyboard shortcuts (Ctrl+P pause, Esc deselect)
-
----
-
-## [2.0.0] - 2026-02-17
-
-### Added
-- Premium licensing system ($10 lifetime)
-- 7-day free trial
-- Bulk import from text and bookmarks
-- Custom colors for schedules
-- Custom categories
-- Bulk reschedule with conflict detection
-- Shift time for multiple schedules
-
----
-
-## [1.0.0] - 2026-01-29
-
-### Initial Release
-- Schedule URLs to open at specific times
-- Recurring schedules (daily, weekly, monthly, yearly, custom)
-- Categories for organization
-- Lock overlay with countdown
-- Desktop notifications
-- Dark/Light theme
-- Backup & restore
+### Major Release
+- Complete UI redesign with sidebar navigation
+- Premium licensing with 7-day free trial
+- Bulk import from text, CSV/Excel, and bookmarks
+- Custom categories with color coding
+- Advanced search with date range filters
 - Keyboard shortcuts
-
----
-
-*For detailed documentation, see [USERGUIDE.md](USERGUIDE.md)*
+- Dark/Light theme
+- Backup and restore
+- Desktop notifications
+- Lock overlay with countdown and temporary unlock
