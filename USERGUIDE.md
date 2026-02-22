@@ -1,4 +1,4 @@
-# TabTimer User Guide — v2.7.6
+# TabTimer User Guide — v2.7.7
 
 ---
 
@@ -287,7 +287,7 @@ Or click Dismiss to handle them manually.
 ## 14. Troubleshooting
 
 **Recurring schedule only fired once then stopped**
-Fixed in v2.7.6. Install the latest version. The health check on startup will automatically repair any stuck schedules. If a schedule is still stuck, click Backup/Sync → Health Check.
+Fixed in v2.7.7. Install the latest version. The health check on startup will automatically repair any stuck schedules. If a schedule is still stuck, click Backup/Sync → Health Check.
 
 **Schedule didn't open at the right time**
 Check: Was Chrome open? Were you on the correct Chrome profile? Is the schedule showing as Active? Run Health Check from Backup/Sync.
@@ -296,16 +296,16 @@ Check: Was Chrome open? Were you on the correct Chrome profile? Is the schedule 
 Expected — TabTimer caught up on missed schedules within the grace period. Reduce grace period in Settings if you'd prefer fewer catch-up opens.
 
 **Edit form showed wrong time**
-Fixed in v2.7.6. The edit form now shows your correct local time. Recurring schedules auto-advance to the next upcoming occurrence.
+Fixed in v2.7.7. The edit form now shows your correct local time. Recurring schedules auto-advance to the next upcoming occurrence.
 
 **Getting two notifications for one tab**
-Fixed in v2.7.6. Reminder and tab-open notifications no longer both fire for the same event.
+Fixed in v2.7.7. Reminder and tab-open notifications no longer both fire for the same event.
 
 **Pages locking when I don't want them to**
 Settings → Default auto re-lock → Never → Save Settings. Schedules created before this change need to be edited or deleted and recreated.
 
 **Every X Hours saving the wrong number**
-Fixed in v2.7.6. Delete and recreate any affected schedules.
+Fixed in v2.7.7. Delete and recreate any affected schedules.
 
 **Premium repeat option is blocked with a PRO badge**
 Click the PRO badge to start your free 7-day trial — no credit card needed.
@@ -323,4 +323,4 @@ Open TabTimer management — a yellow banner lists affected schedules. Click Con
 
 ---
 
-*TabTimer v2.7.6 — Made with ❤️ for the sweepstakes and productivity community*
+*TabTimer v2.7.7 — Made with ❤️ for the sweepstakes and productivity community*
