@@ -1,0 +1,67 @@
+{
+  "manifest_version": 3,
+  "name": "TabTimer",
+  "version": "2.7.6",
+  "description": "Smart Website Scheduler - Schedule websites to open automatically at specific times. Free forever with optional Premium features!",
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "notifications",
+    "contextMenus",
+    "bookmarks",
+    "offscreen"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "options.html",
+  "commands": {
+    "lock-page": {
+      "suggested_key": {
+        "default": "Alt+L"
+      },
+      "description": "Lock current page"
+    },
+    "unlock-page": {
+      "suggested_key": {
+        "default": "Alt+U"
+      },
+      "description": "Unlock current page"
+    },
+    "open-options": {
+      "suggested_key": {
+        "default": "Alt+O"
+      },
+      "description": "Open management page"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ]
+    }
+  ]
+}
