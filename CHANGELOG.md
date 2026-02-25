@@ -2,7 +2,7 @@
 
 ---
 
-## v2.7.7 — February 2026
+## v2.7.8 — February 2026
 
 ### Critical Bug Fix
 - **Fixed recurring schedules only firing once** — Every X Minutes, Every X Hours, Daily, and all other recurring schedules were getting permanently stuck after firing the first time. Root cause: the reschedule logic depended on `autoRelockAt` being set, but Never Lock schedules (`lockMinutes = 0`) never set `autoRelockAt`, so the schedule sat with `opened = true` forever and never fired again. Fix: recurring Never Lock schedules now reschedule themselves immediately when the tab opens, without needing the relock path
