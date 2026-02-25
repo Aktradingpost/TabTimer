@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>We're Sorry to See You Go — TabTimer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --orange: #f97316;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273447;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Nunito Sans', sans-serif;
+      color: var(--text);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(239,68,68,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 100%, rgba(249,115,22,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .page {
+      position: relative;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 52px 24px 72px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 44px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .sad-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+      display: block;
+      animation: wobble 1s 0.5s ease both;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .logo-text {
+      font-family: 'Nunito', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .logo-text span { color: var(--orange); }
+
+    h1 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 24px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── Form card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .form-section {
+      margin-bottom: 28px;
+    }
+
+    .form-section:last-child { margin-bottom: 0; }
+
+    .form-label {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    /* Reason options */
+    .reasons {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reason-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      background: var(--surface2);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+
+    .reason-option:hover {
+      border-color: var(--border);
+      background: #2d3f55;
+    }
+
+    .reason-option.selected {
+      border-color: var(--orange);
+      background: rgba(249,115,22,0.08);
+    }
+
+    .reason-option input[type="radio"] {
+      display: none;
+    }
+
+    .reason-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.15s;
+    }
+
+    .reason-option.selected .reason-dot {
+      border-color: var(--orange);
+      background: var(--orange);
+    }
+
+    .reason-option.selected .reason-dot::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .reason-emoji { font-size: 18px; }
+
+    .reason-text {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Star rating */
+    .stars-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .star {
+      font-size: 32px;
+      cursor: pointer;
+      color: var(--border);
+      transition: color 0.1s, transform 0.1s;
+      user-select: none;
+    }
+
+    .star:hover,
+    .star.active {
+      color: #fbbf24;
+      transform: scale(1.15);
+    }
+
+    .star-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
+    /* Textarea */
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus { border-color: var(--orange); }
+    textarea::placeholder { color: var(--text-muted); }
+
+    /* Contact */
+    .contact-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="email"] {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="email"]:focus { border-color: var(--orange); }
+    input[type="email"]::placeholder { color: var(--text-muted); }
+
+    .optional-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+    }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--orange), #fb923c);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(249,115,22,0.35);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(249,115,22,0.45);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Thank you state */
+    .thankyou {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .thankyou-icon { font-size: 52px; margin-bottom: 16px; display: block; }
+
+    .thankyou h2 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .thankyou p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .reinstall-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color 0.15s;
+    }
+
+    .reinstall-btn:hover { border-color: var(--orange); }
+
+    /* Bottom note */
+    .bottom-note {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .bottom-note a {
+      color: var(--orange);
+      text-decoration: none;
+    }
+
+    .bottom-note a:hover { text-decoration: underline; }
+
+    /* Animations */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes wobble {
+      0%   { transform: rotate(0deg); }
+      25%  { transform: rotate(-10deg); }
+      50%  { transform: rotate(8deg); }
+      75%  { transform: rotate(-5deg); }
+      100% { transform: rotate(0deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="header">
+      <span class="sad-icon">😢</span>
+      <div class="logo-row">
+        <span style="font-size:22px">⏰</span>
+        <div class="logo-text">Tab<span>Timer</span></div>
+      </div>
+      <h1>Sorry to see you go!</h1>
+      <p class="subtitle">Your feedback helps us make TabTimer better.<br>It only takes 30 seconds — thank you!</p>
+    </div>
+
+    <div class="card" id="feedbackForm">
+
+      <!-- Reason -->
+      <div class="form-section">
+        <label class="form-label">Why did you uninstall TabTimer?</label>
+        <div class="reasons">
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="too_complicated">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">😕</span>
+            <span class="reason-text">It was too complicated or confusing</span>
+          </label>
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="not_working">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">🐛</span>
+            <span class="reason-text">It wasn't working correctly</span>
+          </label>
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="missing_feature">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">🔍</span>
+            <span class="reason-text">A feature I needed was missing</span>
+          </label>
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="premium_cost">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">💰</span>
+            <span class="reason-text">Premium features cost too much</span>
+          </label>
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="found_alternative">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">🔄</span>
+            <span class="reason-text">I found a different extension</span>
+          </label>
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="no_longer_needed">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">✅</span>
+            <span class="reason-text">I no longer need it</span>
+          </label>
+          <label class="reason-option" onclick="selectReason(this)">
+            <input type="radio" name="reason" value="other">
+            <div class="reason-dot"></div>
+            <span class="reason-emoji">💬</span>
+            <span class="reason-text">Other reason</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Rating -->
+      <div class="form-section">
+        <label class="form-label">Overall, how would you rate TabTimer?</label>
+        <div class="stars-row" id="starsRow">
+          <span class="star" data-val="1" onclick="setRating(1)">★</span>
+          <span class="star" data-val="2" onclick="setRating(2)">★</span>
+          <span class="star" data-val="3" onclick="setRating(3)">★</span>
+          <span class="star" data-val="4" onclick="setRating(4)">★</span>
+          <span class="star" data-val="5" onclick="setRating(5)">★</span>
+        </div>
+        <div class="star-label" id="starLabel">Click to rate</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Comments -->
+      <div class="form-section">
+        <label class="form-label">Any other comments or suggestions? <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <textarea id="comments" placeholder="Tell us what we could do better, what you loved, or what was missing..."></textarea>
+      </div>
+
+      <!-- Contact -->
+      <div class="form-section">
+        <label class="form-label">Want us to follow up with you? <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <div class="contact-row">
+          <input type="email" id="contactEmail" placeholder="your@email.com">
+          <span class="optional-tag">We'll only reply to your feedback</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitFeedback()">
+        Send Feedback
+      </button>
+
+    </div>
+
+    <!-- Thank you state -->
+    <div class="card thankyou" id="thankYou">
+      <span class="thankyou-icon">🙏</span>
+      <h2>Thank you for your feedback!</h2>
+      <p>We read every single response and use it to make TabTimer better.<br>If you left your email, we'll be in touch.</p>
+      <a href="https://chrome.google.com/webstore/detail/tabtimer" class="reinstall-btn">
+        ⏰ Reinstall TabTimer
+      </a>
+    </div>
+
+    <p class="bottom-note">
+      Changed your mind? <a href="https://chrome.google.com/webstore/detail/tabtimer">Reinstall TabTimer</a> — all your schedules are stored in Chrome and will still be there.<br>
+      Questions? Reach out via the contact option on our Chrome Web Store listing.
+    </p>
+
+  </div>
+
+  <script>
+    let selectedRating = 0;
+
+    function selectReason(el) {
+      document.querySelectorAll('.reason-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      el.querySelector('input').checked = true;
+    }
+
+    const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent!'];
+
+    function setRating(val) {
+      selectedRating = val;
+      document.querySelectorAll('.star').forEach((s, i) => {
+        s.classList.toggle('active', i < val);
+      });
+      document.getElementById('starLabel').textContent = starLabels[val];
+    }
+
+    // Hover preview
+    document.querySelectorAll('.star').forEach(s => {
+      s.addEventListener('mouseenter', () => {
+        const val = parseInt(s.dataset.val);
+        document.querySelectorAll('.star').forEach((st, i) => {
+          st.style.color = i < val ? '#fbbf24' : '';
+        });
+        document.getElementById('starLabel').textContent = starLabels[val];
+      });
+      s.addEventListener('mouseleave', () => {
+        document.querySelectorAll('.star').forEach((st, i) => {
+          st.style.color = '';
+          st.classList.toggle('active', i < selectedRating);
+        });
+        document.getElementById('starLabel').textContent = selectedRating ? starLabels[selectedRating] : 'Click to rate';
+      });
+    });
+
+    async function submitFeedback() {
+      const reasonEl = document.querySelector('input[name="reason"]:checked');
+      const reason = reasonEl ? reasonEl.value : 'not_selected';
+      const rating = selectedRating;
+      const comments = document.getElementById('comments').value.trim();
+      const email = document.getElementById('contactEmail').value.trim();
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      // Build a mailto link so feedback comes to your email
+      // Replace with your preferred endpoint or Google Form if desired
+      const subject = encodeURIComponent(`TabTimer Uninstall Feedback — ${reason}`);
+      const body = encodeURIComponent(
+        `Reason: ${reason}\nRating: ${rating}/5\n\nComments:\n${comments || '(none)'}\n\nContact: ${email || '(not provided)'}`
+      );
+
+      // Option A: mailto (opens email client)
+      // window.location.href = `mailto:TabTimerPro@gmail.com?subject=${subject}&body=${body}`;
+
+      // Option B: Google Form submission (recommended — replace ACTION_URL with your form's prefill URL)
+      // fetch('YOUR_GOOGLE_FORM_ACTION_URL', { method: 'POST', ... })
+
+      // For now: log and show thank you (wire up your preferred method above)
+      console.log('Feedback:', { reason, rating, comments, email });
+
+      // Show thank you
+      document.getElementById('feedbackForm').style.display = 'none';
+      const ty = document.getElementById('thankYou');
+      ty.style.display = 'block';
+
+      // Scroll up
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

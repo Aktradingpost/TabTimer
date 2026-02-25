@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to TabTimer!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --orange: #f97316;
+      --orange-dark: #ea6c0a;
+      --orange-light: #fed7aa;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273447;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --pink: #ec4899;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Nunito Sans', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(249,115,22,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--orange), #fb923c);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 24px rgba(249,115,22,0.4);
+    }
+
+    .logo-text {
+      font-family: 'Nunito', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      color: var(--orange);
+    }
+
+    .tagline {
+      font-size: 18px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .welcome-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--orange), #fb923c);
+      color: white;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 18px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 14px rgba(249,115,22,0.35);
+    }
+
+    /* ── Quick Start Steps ── */
+    .section-label {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 16px;
+    }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .step:hover {
+      border-color: var(--orange);
+      transform: translateX(4px);
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--orange), #fb923c);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 15px;
+      color: white;
+      box-shadow: 0 4px 10px rgba(249,115,22,0.3);
+    }
+
+    .step-body h3 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .step-body p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .step-body kbd {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1px 7px;
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--orange);
+    }
+
+    /* ── Feature cards ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    @media (max-width: 600px) {
+      .features { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--orange);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 26px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .feature-card h4 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .feature-card p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── Important notice ── */
+    .notice {
+      background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(249,115,22,0.05));
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .notice h3 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--orange);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notice ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .notice ul li {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .notice ul li::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Trial banner ── */
+    .trial-banner {
+      background: linear-gradient(135deg, #1e293b, #273447);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.35s ease both;
+    }
+
+    @media (max-width: 600px) {
+      .trial-banner { flex-direction: column; text-align: center; }
+    }
+
+    .trial-text h3 {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 17px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .trial-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .trial-text .stars {
+      color: #fbbf24;
+      font-size: 15px;
+      margin-top: 2px;
+    }
+
+    /* ── Shortcuts strip ── */
+    .shortcuts {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .shortcut-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shortcut-pill kbd {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--orange);
+    }
+
+    /* ── CTA buttons ── */
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.45s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), #fb923c);
+      color: white;
+      box-shadow: 0 6px 20px rgba(249,115,22,0.4);
+    }
+
+    .btn-primary:hover { box-shadow: 0 8px 28px rgba(249,115,22,0.5); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { border-color: var(--orange); }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-row">
+        <div class="logo-icon">⏰</div>
+        <div class="logo-text">Tab<span>Timer</span></div>
+      </div>
+      <p class="tagline">Smart Website Scheduler</p>
+      <div class="welcome-badge">🎉 Welcome — You're all set!</div>
+    </div>
+
+    <!-- Quick Start -->
+    <div class="section-label">Quick Start — 3 ways to schedule a page</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Right-click any webpage</h3>
+          <p>Right-click anywhere on a page → <strong>TabTimer → Schedule this page</strong> → set your time and click Schedule. Done!</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Keyboard shortcut <kbd>Alt+L</kbd></h3>
+          <p>Press <kbd>Alt+L</kbd> on any page to instantly open the schedule dialog right on the page.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Management page <kbd>Alt+O</kbd></h3>
+          <p>Press <kbd>Alt+O</kbd> or click the TabTimer toolbar icon to open the full management page and click <strong>Add New</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="section-label">What you can do</div>
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🔁</span>
+        <h4>Recurring Schedules</h4>
+        <p>Daily, Weekly, Monthly — or Every X Minutes and Hours with Premium.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⏱️</span>
+        <h4>Auto-Close Tab</h4>
+        <p>Tab opens, you do your thing, it closes itself. Perfect for contest entries.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔔</span>
+        <h4>Advance Reminders</h4>
+        <p>Get notified seconds before a tab opens so you're ready at your screen.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <h4>Never Misses a Beat</h4>
+        <p>Grace period catches missed tabs if Chrome was closed — opens them when you return.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h4>Optional Lock Overlay</h4>
+        <p>Lock pages until the right moment with a countdown timer and temporary unlock.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📦</span>
+        <h4>Bulk Import</h4>
+        <p>Import dozens of schedules at once from CSV, Excel, or bookmark folders. <em style="color:var(--orange)">Premium</em></p>
+      </div>
+    </div>
+
+    <!-- Important notice -->
+    <div class="notice">
+      <h3>⚠️ Important — How TabTimer Works</h3>
+      <ul>
+        <li>Chrome must be open and running at the scheduled time</li>
+        <li>You must be on the correct Chrome profile where TabTimer is installed</li>
+        <li>Switching to a different Chrome profile, Firefox, or Edge will prevent tabs from opening</li>
+        <li>If Chrome was closed, TabTimer catches up and opens missed tabs when you return (within your grace period — default 1 hour)</li>
+      </ul>
+    </div>
+
+    <!-- Trial banner -->
+    <div class="trial-banner">
+      <div class="trial-text">
+        <h3>⭐ Your 7-Day Free Trial is Active</h3>
+        <p>All Premium features are unlocked — Every X Minutes/Hours, Weekdays, Weekends, Bulk Import, Custom Categories, and more.</p>
+        <div class="stars">★★★★★ <span style="color:var(--text-muted);font-size:12px;">Upgrade anytime for $10 lifetime</span></div>
+      </div>
+    </div>
+
+    <!-- Shortcuts -->
+    <div class="section-label">Handy shortcuts</div>
+    <div class="shortcuts">
+      <div class="shortcut-pill"><kbd>Alt+L</kbd> Schedule current page</div>
+      <div class="shortcut-pill"><kbd>Alt+O</kbd> Open management</div>
+      <div class="shortcut-pill"><kbd>Alt+U</kbd> Unschedule page</div>
+      <div class="shortcut-pill"><kbd>Ctrl+A</kbd> Select all</div>
+      <div class="shortcut-pill"><kbd>?</kbd> Show all shortcuts</div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-row">
+      <a href="options.html" class="btn btn-primary" id="openManagement">
+        🚀 Open TabTimer Management
+      </a>
+      <a href="https://chrome.google.com/webstore/detail/tabtimer" target="_blank" class="btn btn-secondary">
+        ⭐ Leave a Review
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById('openManagement').addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.sendMessage({ action: 'openManagement' });
+      window.close();
+    });
+  </script>
+</body>
+</html>
