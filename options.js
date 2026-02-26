@@ -1943,7 +1943,20 @@ async function createSchedule() {
     return;
   }
   
-  const unlockTime = new Date(datetime);
+  // Fix: datetime-local input gives "YYYY-MM-DDTHH:MM" with no timezone.
+  // new Date(string) parses that as UTC which is wrong for Alaska users (off by 9 hrs).
+  // Instead, split and use the Date(y,m,d,h,min) constructor which always uses local time.
+  const dtParts = datetime.split('T');
+  const dateParts = dtParts[0].split('-');
+  const timeParts = (dtParts[1] || '00:00').split(':');
+  const unlockTime = new Date(
+    parseInt(dateParts[0]),
+    parseInt(dateParts[1]) - 1,
+    parseInt(dateParts[2]),
+    parseInt(timeParts[0]) || 0,
+    parseInt(timeParts[1]) || 0,
+    parseInt(timeParts[2]) || 0
+  );
   if (unlockTime <= new Date()) {
     showToast('Schedule time must be in the future');
     return;
@@ -2284,9 +2297,17 @@ async function saveEdit() {
         folder: document.getElementById('editFolder').value || 'default',
         color: document.getElementById('editColor').value || '',
         unlockTime: (() => {
-          // datetime-local gives local time — convert correctly to ISO
+          // datetime-local gives "YYYY-MM-DDTHH:MM" with no timezone.
+          // new Date(string) parses as UTC — wrong for Alaska (off by 9 hrs).
+          // Use Date(y,m,d,h,min) constructor which always uses local time.
           const raw = document.getElementById('editDatetime').value;
-          return new Date(raw).toISOString();
+          const dp = raw.split('T');
+          const d = dp[0].split('-');
+          const t = (dp[1] || '00:00').split(':');
+          return new Date(
+            parseInt(d[0]), parseInt(d[1]) - 1, parseInt(d[2]),
+            parseInt(t[0]) || 0, parseInt(t[1]) || 0, parseInt(t[2]) || 0
+          ).toISOString();
         })(),
         recurring: document.getElementById('editRecurring').checked,
         opened: false,        // always reset so the schedule fires again after editing

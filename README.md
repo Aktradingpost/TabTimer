@@ -154,22 +154,22 @@ When a reminder fires, the tab-open notification is automatically suppressed —
 ## Troubleshooting
 
 **Recurring schedule only fired once and stopped**
-Fixed in v2.7.8. Load the latest version. On startup, the health check will automatically repair any stuck schedules.
+Fixed in v2.8.0. Load the latest version. On startup, the health check will automatically repair any stuck schedules.
 
 **Schedule didn't open at the right time**
 Was Chrome open? Were you on the correct Chrome profile? Check grace period in Settings → run Health Check.
 
 **Edit form showing wrong time**
-Fixed in v2.7.8. Now shows correct local time and auto-advances past recurring schedules to next occurrence.
+Fixed in v2.8.0. Now shows correct local time and auto-advances past recurring schedules to next occurrence.
 
 **Getting two notifications for one tab open**
-Fixed in v2.7.8. Reminder and open notifications no longer both fire.
+Fixed in v2.8.0. Reminder and open notifications no longer both fire.
 
 **Pages locking when I don't want them to**
 Settings → Default auto re-lock → Never → Save Settings.
 
 **Every X Hours saving wrong value**
-Fixed in v2.7.8. Delete and recreate any schedules created before this fix.
+Fixed in v2.8.0. Delete and recreate any schedules created before this fix.
 
 ---
 
@@ -189,4 +189,4 @@ Fixed in v2.7.8. Delete and recreate any schedules created before this fix.
 
 ---
 
-*Made with ❤️ for the sweepstakes and productivity community — Version 2.7.8*
+*Made with ❤️ for the sweepstakes and productivity community — Version 2.8.0*
