@@ -1,4 +1,4 @@
-// service_worker.js - TabTimer Premium v2.3.0
+// service_worker.js - TabTimer Premium v2.8.0
 // Smart Website Scheduler with Advanced Features
 
 // ============================================
