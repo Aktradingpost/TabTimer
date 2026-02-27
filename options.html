@@ -645,6 +645,12 @@
       .main-container { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
     }
+
+    /* Hover styles for notice popup buttons (replaces inline event handlers) */
+    #tabtimer-hide-now:hover,
+    #tabtimer-dont-show:hover {
+      background: #eff6ff !important;
+    }
   </style>
 </head>
 <body>
@@ -735,8 +741,8 @@
             <!-- Dismiss options popup -->
             <div id="tabtimer-notice-popup" style="display:none;position:absolute;right:0;top:26px;background:#fff;border:1px solid #93c5fd;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,0.15);z-index:9999;min-width:180px;overflow:hidden;">
               <div style="padding:6px 14px 4px;font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e0f2fe;">Dismiss notice</div>
-              <button id="tabtimer-hide-now" style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;border-bottom:1px solid #e0f2fe;cursor:pointer;font-size:13px;color:#1e40af;line-height:1.4;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">🙈 <strong>Hide for now</strong><br><span style="font-size:11px;color:#64748b;">Shows again next visit</span></button>
-              <button id="tabtimer-dont-show" style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;cursor:pointer;font-size:13px;color:#1e40af;line-height:1.4;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">🚫 <strong>Don't show again</strong><br><span style="font-size:11px;color:#64748b;">Re-enable in Settings</span></button>
+              <button id="tabtimer-hide-now" style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;border-bottom:1px solid #e0f2fe;cursor:pointer;font-size:13px;color:#1e40af;line-height:1.4;">🙈 <strong>Hide for now</strong><br><span style="font-size:11px;color:#64748b;">Shows again next visit</span></button>
+              <button id="tabtimer-dont-show" style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;cursor:pointer;font-size:13px;color:#1e40af;line-height:1.4;">🚫 <strong>Don't show again</strong><br><span style="font-size:11px;color:#64748b;">Re-enable in Settings</span></button>
             </div>
           </div>
         </div>

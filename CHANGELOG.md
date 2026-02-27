@@ -2,6 +2,15 @@
 
 ---
 
+## v2.8.1 — February 2026
+
+### Bug Fixes
+- **Fixed Content Security Policy (CSP) violations** — Chrome's Manifest V3 security policy does not allow inline JavaScript or inline event handlers in extension HTML files
+  - Moved inline `<script>` block from `welcome.html` into a new external `welcome.js` file
+  - Removed `onmouseover` and `onmouseout` inline event handlers from two buttons in `options.html` — replaced with equivalent CSS `:hover` rules in the stylesheet
+
+---
+
 ## v2.8.0 — February 2026
 
 ### Critical Bug Fix
@@ -47,7 +56,7 @@
 - Fixed Excel time decimals and date serial number values
 - Fixed Schedule/Cancel buttons becoming unresponsive after dialog was rebuilt
 - Fixed right-click dialog defaulting to 5-minute lock instead of Never
-- Fixed Every X Hours saving 6 hours instead of user's chosen value — `hourlyInterval`, `minuteInterval`, `customDays`, `specificDates` were not being saved in `createLock`
+- Fixed Every X Hours saving 6 hours instead of user's chosen value
 
 ---
 
