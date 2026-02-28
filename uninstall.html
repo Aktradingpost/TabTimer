@@ -539,28 +539,24 @@
       btn.disabled = true;
       btn.textContent = 'Sending...';
 
-      // Build a mailto link so feedback comes to your email
-      // Replace with your preferred endpoint or Google Form if desired
-      const subject = encodeURIComponent(`TabTimer Uninstall Feedback — ${reason}`);
-      const body = encodeURIComponent(
-        `Reason: ${reason}\nRating: ${rating}/5\n\nComments:\n${comments || '(none)'}\n\nContact: ${email || '(not provided)'}`
-      );
+      // Send feedback via mailto to TabTimerPro@gmail.com
+      const subject = encodeURIComponent('TabTimer Uninstall Feedback — ' + reason);
+      const bodyText = 
+        'Reason: ' + reason +
+        '\nRating: ' + rating + '/5' +
+        '\n\nComments:\n' + (comments || '(none)') +
+        '\n\nContact: ' + (email || '(not provided)');
+      const body = encodeURIComponent(bodyText);
 
-      // Option A: mailto (opens email client)
-      // window.location.href = `mailto:TabTimerPro@gmail.com?subject=${subject}&body=${body}`;
+      // Open mailto - sends feedback to your inbox
+      window.open('mailto:TabTimerPro@gmail.com?subject=' + subject + '&body=' + body);
 
-      // Option B: Google Form submission (recommended — replace ACTION_URL with your form's prefill URL)
-      // fetch('YOUR_GOOGLE_FORM_ACTION_URL', { method: 'POST', ... })
-
-      // For now: log and show thank you (wire up your preferred method above)
-      console.log('Feedback:', { reason, rating, comments, email });
-
-      // Show thank you
+      // Show thank you screen
       document.getElementById('feedbackForm').style.display = 'none';
       const ty = document.getElementById('thankYou');
       ty.style.display = 'block';
 
-      // Scroll up
+      // Scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>

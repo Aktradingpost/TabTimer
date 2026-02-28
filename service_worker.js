@@ -72,7 +72,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 // Set the uninstall feedback URL — opens when the user removes the extension
 // Host uninstall.html on GitHub Pages or any web server and put the URL here
-chrome.runtime.setUninstallURL('https://tabtimerpro.github.io/uninstall/');
+chrome.runtime.setUninstallURL('https://aktradingpost.github.io/TabTimer/uninstall.html');
 
 // CRITICAL: Also start alarm when Chrome starts up
 chrome.runtime.onStartup.addListener(() => {
@@ -1145,10 +1145,12 @@ async function quickScheduleTomorrow(url, title, tabId) {
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(7, 0, 0, 0);
   
-  const settings = await getSettings();
-  const defaultLock = (settings.defaultLockMinutes !== undefined) ? settings.defaultLockMinutes : 0;
-  
+  // Read settings directly from storage (getSettings() is a message handler, not a callable function)
   try {
+    const settingsResult = await chrome.storage.local.get(['settings']);
+    const settings = settingsResult.settings || {};
+    const defaultLock = (settings.defaultLockMinutes !== undefined) ? settings.defaultLockMinutes : 0;
+    
     const result = await createLock({
       url: url,
       name: title || url,
@@ -1160,7 +1162,7 @@ async function quickScheduleTomorrow(url, title, tabId) {
     });
     
     if (result.success) {
-      // sendMessage may fail on restricted pages - that's OK, ignore the error
+      // sendMessage may fail on restricted pages - safely ignore
       chrome.tabs.sendMessage(tabId, { action: 'checkLock' }).catch(() => {});
       chrome.notifications.create({
         type: 'basic',
@@ -1182,10 +1184,12 @@ async function quickSchedule1Hour(url, title, tabId) {
   const oneHour = new Date(Date.now() + 60 * 60 * 1000);
   const timeStr = oneHour.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   
-  const settings = await getSettings();
-  const defaultLock = (settings.defaultLockMinutes !== undefined) ? settings.defaultLockMinutes : 0;
-  
+  // Read settings directly from storage (getSettings() is a message handler, not a callable function)
   try {
+    const settingsResult = await chrome.storage.local.get(['settings']);
+    const settings = settingsResult.settings || {};
+    const defaultLock = (settings.defaultLockMinutes !== undefined) ? settings.defaultLockMinutes : 0;
+    
     const result = await createLock({
       url: url,
       name: title || url,
@@ -1196,7 +1200,7 @@ async function quickSchedule1Hour(url, title, tabId) {
     });
     
     if (result.success) {
-      // sendMessage may fail on restricted pages - that's OK, ignore the error
+      // sendMessage may fail on restricted pages - safely ignore
       chrome.tabs.sendMessage(tabId, { action: 'checkLock' }).catch(() => {});
       chrome.notifications.create({
         type: 'basic',
