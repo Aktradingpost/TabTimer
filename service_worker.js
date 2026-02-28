@@ -1148,52 +1148,69 @@ async function quickScheduleTomorrow(url, title, tabId) {
   const settings = await getSettings();
   const defaultLock = (settings.defaultLockMinutes !== undefined) ? settings.defaultLockMinutes : 0;
   
-  const result = await createLock({
-    url: url,
-    name: title || url,
-    category: 'Daily',
-    unlockTime: tomorrow.toISOString(),
-    recurring: true,
-    repeatType: 'daily',
-    lockMinutes: defaultLock
-  });
-  
-  if (result.success) {
-    chrome.tabs.sendMessage(tabId, { action: 'checkLock' });
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: 'icons/icon128.png',
-      title: 'TabTimer',
-      message: `Scheduled for tomorrow 7:00 AM`,
-      priority: 1
+  try {
+    const result = await createLock({
+      url: url,
+      name: title || url,
+      category: 'Daily',
+      unlockTime: tomorrow.toISOString(),
+      recurring: true,
+      repeatType: 'daily',
+      lockMinutes: defaultLock
     });
+    
+    if (result.success) {
+      // sendMessage may fail on restricted pages - that's OK, ignore the error
+      chrome.tabs.sendMessage(tabId, { action: 'checkLock' }).catch(() => {});
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: 'TabTimer ✅',
+        message: 'Scheduled: Tomorrow at 7:00 AM (Daily)',
+        priority: 2
+      });
+      console.log('TabTimer: Quick schedule tomorrow 7AM created for', url);
+    } else {
+      console.error('TabTimer: Quick schedule tomorrow failed', result);
+    }
+  } catch(e) {
+    console.error('TabTimer: quickScheduleTomorrow error', e);
   }
 }
 
 async function quickSchedule1Hour(url, title, tabId) {
   const oneHour = new Date(Date.now() + 60 * 60 * 1000);
+  const timeStr = oneHour.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   
   const settings = await getSettings();
   const defaultLock = (settings.defaultLockMinutes !== undefined) ? settings.defaultLockMinutes : 0;
   
-  const result = await createLock({
-    url: url,
-    name: title || url,
-    category: 'Once',
-    unlockTime: oneHour.toISOString(),
-    recurring: false,
-    lockMinutes: defaultLock
-  });
-  
-  if (result.success) {
-    chrome.tabs.sendMessage(tabId, { action: 'checkLock' });
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: 'icons/icon128.png',
-      title: 'TabTimer',
-      message: `Scheduled for 1 hour from now`,
-      priority: 1
+  try {
+    const result = await createLock({
+      url: url,
+      name: title || url,
+      category: 'Once',
+      unlockTime: oneHour.toISOString(),
+      recurring: false,
+      lockMinutes: defaultLock
     });
+    
+    if (result.success) {
+      // sendMessage may fail on restricted pages - that's OK, ignore the error
+      chrome.tabs.sendMessage(tabId, { action: 'checkLock' }).catch(() => {});
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: 'TabTimer ✅',
+        message: 'Scheduled: 1 hour from now at ' + timeStr,
+        priority: 2
+      });
+      console.log('TabTimer: Quick schedule 1 hour created for', url);
+    } else {
+      console.error('TabTimer: Quick schedule 1 hour failed', result);
+    }
+  } catch(e) {
+    console.error('TabTimer: quickSchedule1Hour error', e);
   }
 }
 

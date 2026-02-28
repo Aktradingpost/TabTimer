@@ -2,61 +2,52 @@
 
 ---
 
+## v2.8.2 — February 2026
+
+### New Features
+- **Version number in header** — The management page header now shows the actual installed version number (e.g. v2.8.2) automatically pulled from the manifest. It will always be correct with every future update — no more hardcoded version text
+
+### Bug Fixes
+- **Fixed Quick Schedule from right-click not working** — "Quick: Tomorrow 7:00 AM" and "Quick: 1 hour from now" were failing silently on many websites because `sendMessage` threw an uncaught error on restricted pages (Facebook, Instagram, etc.) before the schedule could be confirmed. Both functions now wrap in try/catch and the sendMessage error is safely ignored — the schedule is always created regardless of what page you're on
+- **Improved Quick Schedule notifications** — notifications now show at higher priority, include a ✅ checkmark in the title, and "1 hour from now" now shows the actual target time (e.g. "Scheduled: 1 hour from now at 3:45 PM")
+
+---
+
 ## v2.8.1 — February 2026
 
 ### Bug Fixes
-- **Fixed Content Security Policy (CSP) violations** — Chrome's Manifest V3 security policy does not allow inline JavaScript or inline event handlers in extension HTML files
-  - Moved inline `<script>` block from `welcome.html` into a new external `welcome.js` file
-  - Removed `onmouseover` and `onmouseout` inline event handlers from two buttons in `options.html` — replaced with equivalent CSS `:hover` rules in the stylesheet
+- Fixed Content Security Policy (CSP) violations — moved inline script from welcome.html into external welcome.js file
+- Removed onmouseover/onmouseout inline event handlers from options.html and replaced with CSS hover rules
 
 ---
 
 ## v2.8.0 — February 2026
 
 ### Critical Bug Fix
-- **Fixed recurring schedules only firing once** — Every X Minutes, Every X Hours, Daily, and all other recurring schedules were getting permanently stuck after firing the first time. Root cause: the reschedule logic depended on `autoRelockAt` being set, but Never Lock schedules (`lockMinutes = 0`) never set `autoRelockAt`, so the schedule sat with `opened = true` forever and never fired again. Fix: recurring Never Lock schedules now reschedule themselves immediately when the tab opens, without needing the relock path
-- **Improved health check** — Repair Stuck Schedules now also catches the `opened = true + Never Lock + recurring` pattern and fixes it automatically on startup, so any previously stuck schedules repair themselves when Chrome restarts
+- Fixed recurring schedules only firing once — recurring Never Lock schedules now reschedule themselves immediately when the tab opens
 
 ### New Features
-- **Auto-close in right-click dialog** — the "Auto-close tab after opening" option is now available when scheduling via right-click on any page, matching what was already in Add New and Edit. All three entry points are now consistent
-- **Advance notification reminder** — get notified X seconds before a tab opens (default 10 seconds). Set to 0 in Settings to disable. Only one notification fires per tab open — the reminder suppresses the tab-open notification so you never get doubled up
-- **Notification reminder in seconds** — changed from minutes to seconds for finer control (10 sec, 30 sec, 2 min = 120, etc.)
+- Auto-close in right-click dialog
+- Advance notification reminder (seconds before tab opens)
+- Notification reminder in seconds for finer control
 
 ### Bug Fixes
-- Fixed advance reminder notification never firing — `notifMinutes` variable was still referenced after being renamed to `notifSeconds`
-- Fixed tabs not opening after being edited — saving an edit now resets `opened = false` and `reminderSent = false`
-- Fixed edit modal showing wrong time — was using UTC instead of local timezone
-- Fixed edit modal showing a past time for recurring schedules — now auto-advances to the next upcoming occurrence
-- Fixed Every X Hours and Every X Minutes saving wrong interval values — now reads directly from the visible input at save time
-- Fixed duplicate notifications — "Opened" notification is now suppressed when a reminder already fired for that occurrence
-- Fixed notification default changed from 5 minutes to 10 seconds
-
-### Improvements
-- Schedule list shows **⏱️ Auto-close: X min** badge for any schedule with auto-close enabled
-- Notification reminder label simplified to "Notification reminder" with "seconds before tab opens" inline
-- Helper text: "Set to 0 to disable advance reminders"
-- `reminderSent` flag now resets whenever a schedule reschedules itself
+- Fixed advance reminder notification never firing
+- Fixed tabs not opening after being edited
+- Fixed edit modal showing wrong time (UTC vs local timezone)
+- Fixed edit modal showing past time for recurring schedules
+- Fixed Every X Hours and Every X Minutes saving wrong interval values
+- Fixed duplicate notifications
 
 ---
 
 ## v2.7.4 — February 2026
-
-### New Features
-- **Never Lock is now the default** — all new schedules open like normal tabs, no overlay
-- **Premium repeat gating** — Weekdays, Weekends, and all advanced repeats are Premium-only with PRO badge and trial prompt for free users
-- **Trial expiry downgrade assistant** — one-click conversion of Premium repeat schedules to nearest free option when trial expires
-- **Custom categories in right-click dialog** — categories created in management appear in the right-click dialog automatically
-- **How TabTimer Works notice** — info banner explaining Chrome profile requirement, with "Hide for now" / "Don't show again" dismiss options (re-enable in Settings)
-- **Management page auto-refreshes** when a schedule is created from another tab
-
-### Bug Fixes
-- Fixed schedule dialog not appearing on Facebook, Instagram, and similar sites
-- Fixed management page opening unexpectedly on some sites
-- Fixed Excel/CSV import pulling in example template rows
-- Fixed Excel time decimals and date serial number values
-- Fixed Schedule/Cancel buttons becoming unresponsive after dialog was rebuilt
-- Fixed right-click dialog defaulting to 5-minute lock instead of Never
-- Fixed Every X Hours saving 6 hours instead of user's chosen value
+- Never Lock is now the default for all new schedules
+- Premium repeat gating with PRO badge
+- Trial expiry downgrade assistant
+- Custom categories in right-click dialog
+- How TabTimer Works notice banner
+- Management page auto-refreshes on new schedule
 
 ---
 
@@ -64,11 +55,9 @@
 - CSV/Excel bulk import
 - Clickable Notes badge
 - Temporary unlock options
-- Advanced search
-- Shift+Click selection
+- Advanced search, Shift+Click selection
 - Sound notifications
-- 1-hour grace period for missed tabs
-- Staggered opening for multiple missed tabs
+- 1-hour grace period, staggered opening
 
 ---
 
@@ -78,4 +67,3 @@
 - Bulk import, custom categories, advanced search
 - Keyboard shortcuts, dark/light theme
 - Backup and restore, desktop notifications
-- Lock overlay with countdown and temporary unlock

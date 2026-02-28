@@ -105,6 +105,15 @@ function formatNextDateTime(date) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Auto-read version from manifest and display in header
+  try {
+    const manifest = chrome.runtime.getManifest();
+    const versionEl = document.getElementById('headerVersion');
+    if (versionEl && manifest.version) {
+      versionEl.textContent = 'v' + manifest.version;
+    }
+  } catch(e) {}
+
   // Check license
   await checkLicense();
   
