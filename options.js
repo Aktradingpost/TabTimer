@@ -684,6 +684,8 @@ function updateStats() {
         filterEl.classList.add('active');
         currentFilter = `cat-custom`;
         customCategoryFilter = cat;
+        currentFolder = null;
+        switchView('schedules');
         renderSchedules();
       });
       customCategoryContainer.appendChild(filterEl);
