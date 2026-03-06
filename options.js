@@ -1427,6 +1427,10 @@ function setupEventListeners() {
       showToast('🎉 License activated! Enjoy Premium!');
       showLicenseStatus();
       updateLicenseModal();
+      applyPremiumState();
+      // Remove the trial-expired downgrade banner if it's showing
+      const banner = document.getElementById('tabtimer-downgrade-banner');
+      if (banner) banner.remove();
     } else {
       showToast(result.error);
     }

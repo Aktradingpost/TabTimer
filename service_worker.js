@@ -1808,9 +1808,41 @@ async function importFullBackup(data) {
       const fixedLocks = data.locks.map(lock => {
         const unlockTime = new Date(lock.unlockTime).getTime();
         
-        // CASE 1: Future unlock time - should NOT be marked as opened
-        // Reset opened/manuallyUnlocked so it will open at the scheduled time
+        // CASE 1: Future unlock time
         if (unlockTime > now) {
+          const repeatType = lock.repeatType || 'daily';
+          
+          // For minutes/hourly recurring: even if the stored time is in the future,
+          // it may be from a stale backup (e.g. tomorrow morning). Always reset to
+          // now + interval so it starts firing immediately after import.
+          if (lock.recurring && repeatType === 'minutes') {
+            const mins = lock.minuteInterval || 10;
+            const nextUnlock = new Date(now + mins * 60 * 1000);
+            console.log(`TabTimer: Import - "${lock.name || lock.url}" is minutes recurring, resetting to now+${mins}min`);
+            return {
+              ...lock,
+              unlockTime: nextUnlock.toISOString(),
+              opened: false,
+              manuallyUnlocked: false,
+              autoRelockAt: null,
+              missedSchedule: false
+            };
+          }
+          if (lock.recurring && repeatType === 'hourly') {
+            const hrs = lock.hourlyInterval || 1;
+            const nextUnlock = new Date(now + hrs * 60 * 60 * 1000);
+            console.log(`TabTimer: Import - "${lock.name || lock.url}" is hourly recurring, resetting to now+${hrs}hr`);
+            return {
+              ...lock,
+              unlockTime: nextUnlock.toISOString(),
+              opened: false,
+              manuallyUnlocked: false,
+              autoRelockAt: null,
+              missedSchedule: false
+            };
+          }
+          
+          // All other future schedules: keep the stored time, just ensure active
           console.log(`TabTimer: Import - "${lock.name || lock.url}" has future time, ensuring it's active`);
           return {
             ...lock,
@@ -1824,15 +1856,30 @@ async function importFullBackup(data) {
         // CASE 2: Past time, recurring - needs to be rescheduled to next occurrence
         if (unlockTime <= now && lock.recurring) {
           console.log(`TabTimer: Import - "${lock.name || lock.url}" is past recurring, will be rescheduled`);
-          // Calculate the next future occurrence
-          let nextUnlock = new Date(lock.unlockTime);
-          let tempLock = { ...lock };
-          let safetyCounter = 0;
           
-          while (nextUnlock.getTime() <= now && safetyCounter < 365) {
-            tempLock.unlockTime = nextUnlock.toISOString();
-            nextUnlock = calculateNextUnlockTime(tempLock);
-            safetyCounter++;
+          let nextUnlock;
+          const repeatType = lock.repeatType || 'daily';
+          
+          // For minute/hour intervals: always base next time on NOW, not the old stored time.
+          // Looping from a days-old time would require thousands of iterations and can overshoot.
+          if (repeatType === 'minutes') {
+            const mins = lock.minuteInterval || 10;
+            nextUnlock = new Date(now + mins * 60 * 1000);
+          } else if (repeatType === 'hourly') {
+            const hrs = lock.hourlyInterval || 1;
+            nextUnlock = new Date(now + hrs * 60 * 60 * 1000);
+          } else {
+            // For daily/weekly/monthly etc: advance the original time-of-day forward
+            // using calendar math until we land in the future
+            let candidate = new Date(lock.unlockTime);
+            let tempLock = { ...lock };
+            let safetyCounter = 0;
+            while (candidate.getTime() <= now && safetyCounter < 1000) {
+              tempLock.unlockTime = candidate.toISOString();
+              candidate = calculateNextUnlockTime(tempLock);
+              safetyCounter++;
+            }
+            nextUnlock = candidate;
           }
           
           return {

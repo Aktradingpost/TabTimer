@@ -630,8 +630,8 @@ async function showLockDialog(url, title) {
           <div style="margin-top: 12px;">
             <label style="font-size: 12px; color: #64748b;">Custom time (with seconds):</label>
             <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;">
-              <input type="date" id="tabtimer-date" style="flex: 1;">
-              <input type="time" id="tabtimer-time" step="1" style="width: 130px;">
+              <input type="date" id="tabtimer-date" style="width: 130px; flex-shrink: 0;">
+              <input type="time" id="tabtimer-time" step="1" style="flex: 1; min-width: 160px;">
             </div>
           </div>
         </div>
@@ -780,15 +780,30 @@ function findSmartAvailableTimes(existingLocks) {
     }
   }
   
-  // Find time AFTER the last scheduled time
+  // Find time AFTER the last scheduled time - must be in the future
   const lastTime = scheduledTimes[scheduledTimes.length - 1];
-  const afterLast = new Date(lastTime + 60000);
+  const afterLastCandidate = new Date(lastTime + 60000);
+  // If the last schedule is in the past, suggest 2 minutes from now instead
+  const afterLast = afterLastCandidate.getTime() > now 
+    ? afterLastCandidate 
+    : new Date(now + 2 * 60000);
   suggestions.push({
     time: afterLast,
-    label: 'After last ➡️'
+    label: '➡️ Gap available'
   });
   
-  return suggestions.slice(0, 3);
+  // Filter out any suggestions that are in the past (safety check)
+  const futureSuggestions = suggestions.filter(s => s.time.getTime() > now);
+  
+  // Always ensure at least one suggestion - default to 2 min from now
+  if (futureSuggestions.length === 0) {
+    futureSuggestions.push({
+      time: new Date(now + 2 * 60000),
+      label: '➡️ Gap available'
+    });
+  }
+  
+  return futureSuggestions.slice(0, 3);
 }
 
 function formatTimeWithSeconds(date) {
