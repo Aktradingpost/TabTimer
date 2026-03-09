@@ -767,12 +767,27 @@ async function _checkAndOpenLocksImpl() {
   }
 } // end _checkAndOpenLocksImpl
 
+// Helper: get or create a normal browser window to open tabs in
+async function getOrCreateWindow() {
+  const windows = await chrome.windows.getAll({ windowTypes: ['normal'] });
+  const visible = windows.filter(w => w.state !== 'minimized');
+  if (visible.length > 0) return visible[0].id;
+  if (windows.length > 0) {
+    await chrome.windows.update(windows[0].id, { state: 'normal' });
+    return windows[0].id;
+  }
+  const newWin = await chrome.windows.create({ focused: false });
+  return newWin.id;
+}
+
 // Helper function to open a single scheduled tab
 async function openScheduledTab(lock, locks, settings, now) {
   try {
+    const windowId = await getOrCreateWindow();
     const tab = await chrome.tabs.create({ 
       url: lock.url, 
-      active: !settings.openInBackground 
+      active: !settings.openInBackground,
+      windowId
     });
     
     trackTabForResolvedUrl(tab.id, lock.id);
@@ -947,9 +962,11 @@ async function manualResolveUrl(lockId, url) {
   return new Promise(async (resolve) => {
     try {
       // Open the tab in background
+      const windowId = await getOrCreateWindow();
       const tab = await chrome.tabs.create({ 
         url: url, 
-        active: false 
+        active: false,
+        windowId
       });
       
       const tabId = tab.id;
@@ -1113,10 +1130,13 @@ function calculateNextUnlockTime(lock) {
 // CONTEXT MENU HANDLER
 // ============================================
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   switch (info.menuItemId) {
     case 'lock-page':
-      chrome.tabs.sendMessage(tab.id, { action: 'showLockDialog', url: tab.url, title: tab.title });
+      chrome.tabs.sendMessage(tab.id, { action: 'showLockDialog', url: tab.url, title: tab.title })
+        .catch(() => {
+          // Tab may not support content scripts (e.g. chrome:// pages) - silently ignore
+        });
       break;
     case 'quick-schedule-tomorrow':
       quickScheduleTomorrow(tab.url, tab.title, tab.id);
@@ -1919,19 +1939,28 @@ async function importFullBackup(data) {
       await chrome.storage.local.set({ tags: data.tags });
     }
     
-    // Restore license/trial info to prevent trial abuse
-    if (data.license && data.license.trialStarted) {
+    // Restore license/trial info — but NEVER overwrite a valid premium license key
+    // The license key is stored as { key, validated: true, activatedAt }
+    const existingLicenseData = await chrome.storage.local.get('license');
+    const existingLicense = existingLicenseData.license || {};
+    const alreadyPremium = existingLicense.key && existingLicense.validated === true;
+
+    if (alreadyPremium) {
+      // User already has a valid premium key installed — keep it, skip all backup license data
+      console.log('TabTimer: Import - Premium license already active (key: ' + existingLicense.key + '), preserving it');
+    } else if (data.license && data.license.key && data.license.validated === true) {
+      // Backup itself contains a validated premium key — restore it
+      console.log('TabTimer: Import - Restoring premium license from backup');
+      await chrome.storage.local.set({ license: data.license });
+    } else if (data.license && data.license.trialStarted) {
+      // Backup only has trial info — restore trial dates to prevent abuse
       console.log('TabTimer: Restoring trial info from backup - trialStarted:', data.license.trialStarted);
-      
-      // Always restore the trial start date from backup to prevent abuse
-      // This ensures users can't get a new trial by reinstalling and importing
       await chrome.storage.local.set({ 
         license: {
           trialStarted: data.license.trialStarted,
           trialDays: data.license.trialDays || 7
         }
       });
-      
       console.log('TabTimer: Trial info restored successfully');
     }
     

@@ -484,11 +484,15 @@ async function snoozeLock(lock, minutes) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'showLockDialog') {
     showLockDialog(message.url, message.title);
+    sendResponse({ ok: true });
   } else if (message.action === 'checkLock') {
     checkPageLock();
+    sendResponse({ ok: true });
   } else if (message.action === 'playSound') {
     playNotificationSound();
+    sendResponse({ ok: true });
   }
+  return true;
 });
 
 // Play notification sound
@@ -530,7 +534,7 @@ function playNotificationSound() {
 async function showLockDialog(url, title) {
   // Remove existing dialog if any
   if (currentDialog) {
-    currentDialog.remove();
+    (currentDialog._shadowHost || currentDialog).remove();
   }
   
   // Get theme setting
@@ -731,11 +735,30 @@ ${[0,1,2,5,10,15,30].map(v => `<button type="button" class="tabtimer-lock-btn${d
     </div>
   `;
   
-  document.body.appendChild(overlay);
+  // Use Shadow DOM to fully isolate TabTimer styles from the host page.
+  // This prevents dark-mode sites (e.g. bevoffers.com) from bleeding their
+  // CSS into the dialog.
+  const shadowHost = document.createElement('div');
+  shadowHost.id = 'tabtimer-shadow-host';
+  shadowHost.style.cssText = 'all:initial;position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483647;pointer-events:none;';
+  const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+
+  // Inject our stylesheet into the shadow root
+  const styleLink = document.createElement('link');
+  styleLink.rel = 'stylesheet';
+  styleLink.href = chrome.runtime.getURL('content.css');
+  shadowRoot.appendChild(styleLink);
+
+  // Move the overlay into the shadow root
+  overlay.style.pointerEvents = 'auto';
+  shadowRoot.appendChild(overlay);
+
+  document.body.appendChild(shadowHost);
   currentDialog = overlay;
+  currentDialog._shadowHost = shadowHost;
 
   // Setup event listeners
-  setupDialogEvents(overlay, url, isDark, existingLocks);
+  setupDialogEvents(overlay, url, isDark, existingLocks, settings);
 }
 
 function findSmartAvailableTimes(existingLocks) {
@@ -834,7 +857,7 @@ function checkTimeConflict(existingLocks, targetTime) {
   return { hasConflict: false };
 }
 
-function setupDialogEvents(overlay, url, isDark, existingLocks) {
+function setupDialogEvents(overlay, url, isDark, existingLocks, settings) {
   const closeBtn = overlay.querySelector('#tabtimer-close');
   const cancelBtn = overlay.querySelector('#tabtimer-cancel');
   const saveBtn = overlay.querySelector('#tabtimer-save');
@@ -851,7 +874,7 @@ function setupDialogEvents(overlay, url, isDark, existingLocks) {
   });
   
   function closeDialog() {
-    overlay.remove();
+    (overlay._shadowHost || overlay.getRootNode().host || overlay).remove();
     currentDialog = null;
   }
   
@@ -863,6 +886,21 @@ function setupDialogEvents(overlay, url, isDark, existingLocks) {
       overlay.querySelector('#tabtimer-category').value = btn.dataset.value;
     });
   });
+
+  // Auto-select the default category from settings
+  const defaultCat = (settings && settings.defaultCategory) ? settings.defaultCategory : 'Daily';
+  const defaultCatBtn = overlay.querySelector(`#tabtimer-categories .tabtimer-btn-option[data-value="${defaultCat}"]`);
+  if (defaultCatBtn) {
+    defaultCatBtn.classList.add('active');
+    overlay.querySelector('#tabtimer-category').value = defaultCat;
+  } else {
+    // Fallback: select first available category button
+    const firstBtn = overlay.querySelector('#tabtimer-categories .tabtimer-btn-option');
+    if (firstBtn) {
+      firstBtn.classList.add('active');
+      overlay.querySelector('#tabtimer-category').value = firstBtn.dataset.value;
+    }
+  }
   
   // Time suggestion clicks
   overlay.querySelectorAll('.tabtimer-time-suggestion').forEach(btn => {

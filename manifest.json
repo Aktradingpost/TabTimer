@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabTimer",
-  "version": "2.8.6",
+  "version": "2.8.11",
   "description": "Smart Website Scheduler - Schedule websites to open automatically at specific times. Free forever with optional Premium features!",
   "permissions": [
     "storage",
@@ -10,7 +10,8 @@
     "notifications",
     "contextMenus",
     "bookmarks",
-    "offscreen"
+    "offscreen",
+    "scripting"
   ],
   "background": {
     "service_worker": "service_worker.js"
@@ -67,7 +68,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "welcome.html"
+        "welcome.html",
+        "content.css"
       ],
       "matches": [
         "<all_urls>"
