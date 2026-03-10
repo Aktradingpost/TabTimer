@@ -2,6 +2,25 @@
 
 ---
 
+## v2.8.14 — March 2026
+
+### New Features
+- **Notes in right-click dialog** — Pro users can now paste entry instructions or reminders directly into the Schedule dialog when right-clicking any page. Free users see the Notes field locked with a "Notes are available with the Pro Version" message.
+- **Notes on Add New form** — Pro users see a full Notes textarea on the Add New Schedule management page form. Free users see it locked with an Upgrade to Pro link.
+
+### Bug Fixes
+- **Fixed Specific Dates not showing in Edit modal** — The Edit modal was missing the Specific Dates option in the Repeat Type dropdown entirely, and had no field to display saved dates. Both are now present and pre-populate correctly when editing an existing schedule.
+
+---
+
+## v2.8.11 — March 2026
+
+### Bug Fixes
+- **Fixed premium license reset on backup import** — Importing a backup no longer overwrites a valid Premium license key. The extension now checks for an existing validated license before restoring any license data from the backup.
+- **Fixed "No current window" error** — Scheduled tabs now open correctly even when Chrome is minimized or has no active window. TabTimer now finds or creates a window automatically before opening any tab.
+
+---
+
 ## v2.8.2 — February 2026
 
 ### New Features

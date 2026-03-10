@@ -1247,6 +1247,7 @@ function setupEventListeners() {
     document.getElementById('editMinuteGroup').style.display = value === 'minutes' ? 'block' : 'none';
     document.getElementById('editHourlyGroup').style.display = value === 'hourly' ? 'block' : 'none';
     document.getElementById('editCustomDaysGroup').style.display = value === 'custom-days' ? 'block' : 'none';
+    document.getElementById('editSpecificDatesGroup').style.display = value === 'specific-dates' ? 'block' : 'none';
   });
   
   // Edit modal auto-close checkbox
@@ -1924,6 +1925,8 @@ async function createSchedule() {
   
   // Get sound notification setting
   const playSound = document.getElementById('newPlaySound').checked;
+  const notesEl = document.getElementById('newNotes');
+  const notes = (notesEl && isPremiumFeature()) ? notesEl.value.trim() : '';
   
   // Get custom repeat settings
   let minuteInterval = null;
@@ -2006,7 +2009,8 @@ async function createSchedule() {
       minuteInterval,
       hourlyInterval,
       customDays,
-      specificDates
+      specificDates,
+      notes
     }
   });
   
@@ -2018,6 +2022,7 @@ async function createSchedule() {
     // Clear form
     document.getElementById('newUrl').value = '';
     document.getElementById('newName').value = '';
+    const newNotesEl = document.getElementById('newNotes'); if (newNotesEl) newNotesEl.value = '';
   } else {
     showToast('Failed to create schedule');
   }
@@ -2227,6 +2232,13 @@ function openEditModal(id) {
   } else {
     document.getElementById('editCustomDaysGroup').style.display = 'none';
   }
+  if (lock.repeatType === 'specific-dates') {
+    const datesStr = Array.isArray(lock.specificDates) ? lock.specificDates.join(', ') : (lock.specificDates || '');
+    document.getElementById('editSpecificDates').value = datesStr;
+    document.getElementById('editSpecificDatesGroup').style.display = 'block';
+  } else {
+    document.getElementById('editSpecificDatesGroup').style.display = 'none';
+  }
   
   // Set auto-close
   document.getElementById('editAutoClose').checked = lock.autoClose || false;
@@ -2292,6 +2304,7 @@ async function saveEdit() {
   let minuteInterval = null;
   let hourlyInterval = null;
   let customDays = null;
+  let specificDates = null;
   
   if (repeatType === 'minutes') {
     minuteInterval = parseInt(document.getElementById('editMinuteInterval').value);
@@ -2299,6 +2312,9 @@ async function saveEdit() {
     hourlyInterval = parseInt(document.getElementById('editHourlyInterval').value);
   } else if (repeatType === 'custom-days') {
     customDays = parseInt(document.getElementById('editCustomDays').value);
+  } else if (repeatType === 'specific-dates') {
+    const dt = document.getElementById('editSpecificDates').value.trim();
+    if (dt) specificDates = dt.split(',').map(d => d.trim()).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
   }
   
   try {
@@ -2332,6 +2348,7 @@ async function saveEdit() {
         minuteInterval,
         hourlyInterval,
         customDays,
+        specificDates,
         autoClose,
         autoCloseMinutes: autoClose ? parseInt(document.getElementById('editAutoCloseMinutes').value) : 0,
         playSound,
