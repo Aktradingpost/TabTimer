@@ -172,13 +172,23 @@ async function runScheduleHealthCheck() {
       const stuckOpenedNeverLock = lock.opened && !lock.autoRelockAt && lock.lockMinutes === 0;
       
       if (timeInPast || stuckOpenedNeverLock) {
-        let nextUnlock = new Date(lock.unlockTime);
-        let safetyCounter = 0;
-        
-        while (nextUnlock.getTime() <= now && safetyCounter < 365) {
-          const tempLock = { ...lock, unlockTime: nextUnlock.toISOString() };
-          nextUnlock = calculateNextUnlockTime(tempLock);
-          safetyCounter++;
+        // For minutes/hourly intervals, always base next run on NOW so the schedule
+        // resumes immediately rather than jumping back to the original start time.
+        // All other repeat types use calendar math stepping forward from original time.
+        let nextUnlock;
+        const rType = lock.repeatType || 'daily';
+        if (rType === 'minutes') {
+          nextUnlock = new Date(now + (lock.minuteInterval || 10) * 60 * 1000);
+        } else if (rType === 'hourly') {
+          nextUnlock = new Date(now + (lock.hourlyInterval || 1) * 60 * 60 * 1000);
+        } else {
+          nextUnlock = new Date(lock.unlockTime);
+          let safetyCounter = 0;
+          while (nextUnlock.getTime() <= now && safetyCounter < 365) {
+            const tempLock = { ...lock, unlockTime: nextUnlock.toISOString() };
+            nextUnlock = calculateNextUnlockTime(tempLock);
+            safetyCounter++;
+          }
         }
         
         console.log(`Health Check: Repairing stuck schedule "${lock.name || lock.url}"`);

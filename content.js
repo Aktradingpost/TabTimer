@@ -559,7 +559,6 @@ async function showLockDialog(url, title) {
   const suggestions = findSmartAvailableTimes(existingLocks);
   
   // Create overlay
-  // Build notes HTML before template (avoids nested backtick issues in shadow DOM)
   const notesHTML = hasPremium
     ? '<div class="tabtimer-field"><label style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">\u{1F4DD} Notes <span style="background:#f97316;color:white;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">PRO</span></label><textarea id="tabtimer-notes" rows="3" placeholder="Paste entry instructions, reminders, or any notes..." style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;resize:vertical;min-height:70px;max-height:200px;box-sizing:border-box;font-family:inherit;margin-top:6px;"></textarea></div>'
     : '<div class="tabtimer-field"><label style="font-size:13px;font-weight:600;">\u{1F4DD} Notes</label><textarea rows="3" disabled placeholder="Notes are available with the Pro Version" style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;resize:none;min-height:70px;opacity:0.5;cursor:not-allowed;background:#f8fafc;box-sizing:border-box;font-family:inherit;margin-top:6px;"></textarea></div>';
