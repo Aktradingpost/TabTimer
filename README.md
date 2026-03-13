@@ -1,192 +1,133 @@
 # TabTimer — Smart Website Scheduler
 
-**Automatically open websites at scheduled times — free forever with optional Premium.**
+**Automatically open any website at the exact time you choose. Set it once — TabTimer does the rest.**
 
-[Features](#features) • [How It Works](#important--how-tabtimer-works) • [Quick Start](#quick-start) • [Repeat Options](#repeat-options) • [Shortcuts](#keyboard-shortcuts) • [Troubleshooting](#troubleshooting) • [Support](#support)
+TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, and anyone who needs websites to open automatically on a schedule. No more missed entries. No more forgetting.
 
----
-
-## What is TabTimer?
-
-TabTimer is a Chrome extension that opens websites automatically at the times you choose. Set it once and forget it — TabTimer handles the rest.
-
-**Perfect for:**
-- 🎯 Contests & Sweepstakes — never miss an entry window
-- 📰 Morning routines — news, email, and work tools open automatically
-- 📊 Work dashboards — reports and tools launch at the start of each day
-- ⏰ Reminders — time-sensitive pages that need your attention
-- 🔄 Recurring tasks — weekly check-ins, monthly reports
-
----
-
-## Important — How TabTimer Works
-
-TabTimer runs inside Chrome. For schedules to open on time:
-
-- ✔ **Chrome must be running** at the scheduled time
-- ✔ You must be on the **correct Chrome profile** where TabTimer is installed
-- ✔ Switching to a different Chrome profile, Firefox, Edge, or Safari will prevent tabs from opening
-
-If Chrome was closed or you switched profiles, TabTimer catches up and opens missed tabs when you return — within your **grace period** (default 1 hour, adjustable in Settings).
+[![Version](https://img.shields.io/badge/version-2.8.20-orange)](https://github.com/yourusername/tabtimer)
+[![License](https://img.shields.io/badge/license-Proprietary-blue)]()
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Published-green)](https://chrome.google.com/webstore)
 
 ---
 
 ## Features
 
-### Free Forever
-- Schedule any URL to open at a specific date and time
-- Repeat: No Repeat, Daily, Weekly, Monthly, Yearly
-- **Never Lock** — pages open like normal tabs, no overlay (default)
-- Optional lock overlay with countdown timer and temporary unlock
-- **Auto-close** — automatically close the tab after X minutes
-- **Advance notification reminder** — notified X seconds before a tab opens (default 10s, set 0 to disable)
-- One notification per tab — reminder suppresses the open notification so you never get doubled up
-- Desktop and sound notifications
-- Pause/Resume all schedules
-- Dark/Light theme
-- Backup and restore
-- Keyboard shortcuts (Alt+L to schedule, Alt+O to manage)
-- Grace period — missed tabs still open when Chrome restarts (default 1 hour)
-- Health check on startup — automatically repairs stuck schedules
+### Free Features
+- Schedule any website to open at a set time
+- Daily, Weekly, Monthly, Once, and Yearly repeat types
+- Right-click any page → "Schedule this page"
+- Quick Schedule: Tomorrow 7 AM or 1 Hour from Now (Alt+L)
+- Auto-delete expired one-time schedules
+- Light and dark theme
+- Backup and restore all your schedules
+- Manage all schedules from one dashboard
+- Category filters (Daily, Weekly, Monthly, Once, Other)
 
-### Premium ($10 Lifetime — 7-Day Free Trial Included)
-- Advanced repeats: Weekdays, Weekends, Every 2 Weeks, Every 3 Weeks, Quarterly, Every X Minutes, Every X Hours, Custom Days, Specific Dates, and more
-- Bulk import from text, CSV/Excel, or bookmark folders
-- Custom categories and colors
-- Notes on any schedule
-- Cloud sync across devices
-- Advanced search with saved filters
-- Drag and drop reordering
-- Bulk reschedule and shift time
-- Shift+Click multi-selection
-
----
-
-## Quick Start
-
-### Right-Click Any Page
-1. Navigate to the website you want to schedule
-2. Right-click anywhere → **TabTimer → Schedule this page**
-3. Set your time, repeat, auto-close, and click **Schedule**
-
-### Keyboard Shortcut
-Press **Alt+L** on any page to open the schedule dialog instantly.
-
-### Quick Schedule
-Right-click any page and choose:
-- **⚡ Quick: Tomorrow at 7 AM** — schedules as a daily recurring event
-- **⚡ Quick: 1 hour from now** — one-time, opens in 60 minutes
-
-### Management Page
-Press **Alt+O** → **Add New** in the sidebar.
+### PRO Features — $10 Lifetime License
+- **Weekdays (Mon–Fri)** repeat
+- **Mon–Sat** repeat — perfect for mail-in sweepstakes postmark dates
+- Weekends, Every 2 Weeks, Every 3 Weeks repeat
+- Every X Minutes and Every X Hours repeat
+- Custom Days Interval and Specific Dates repeat
+- Every 2 Months, Quarterly, Every 6 Months, Leap Year repeat
+- **Custom categories** with your own emoji and color
+- **Edit category emoji, name, and color** anytime
+- **Notes field** — paste entry instructions with each schedule
+- Bulk import schedules via CSV or Excel
+- Bookmark folder import
+- Auto-close tabs after opening
+- Sound notification when a tab opens
+- Advance reminder notification (seconds before opening)
+- Never Lock mode — opens tab without blocking your browsing
+- One-time payment, no subscription ever
 
 ---
 
-## Auto-Close Tab
+## How It Works
 
-Available in the right-click dialog, Add New form, and Edit modal.
-
-Check **⏱️ Auto-close tab after opening** and set the number of minutes. The tab closes itself automatically — great for contest entries.
-
-The schedule list shows **⏱️ Auto-close: X min** on any schedule with this enabled.
-
----
-
-## Notification Reminder
-
-Go to **Settings → Notification reminder** and set seconds (default 10).
-
-- `0` = disabled (tab-open notification still fires)
-- `10` = 10-second heads-up before the tab opens
-- `60` = 1-minute warning
-- `300` = 5-minute warning
-
-When a reminder fires, the tab-open notification is automatically suppressed — you only ever get **one** notification per tab open.
+1. **Right-click** any page and choose "Schedule this page" — or press **Alt+L** on any tab
+2. Pick your time, repeat type, and category
+3. TabTimer opens the page automatically at the scheduled time
+4. Recurring schedules reset themselves automatically for the next occurrence
 
 ---
 
-## Repeat Options
+## Installation (Development / Load Unpacked)
 
-| Option | Free | Premium |
-|---|---|---|
-| No Repeat (One-time) | ✅ | ✅ |
-| Daily | ✅ | ✅ |
-| Weekly | ✅ | ✅ |
-| Monthly | ✅ | ✅ |
-| Yearly | ✅ | ✅ |
-| Weekdays (Mon–Fri) | — | ⭐ |
-| Weekends (Sat–Sun) | — | ⭐ |
-| Every 2 Weeks | — | ⭐ |
-| Every 3 Weeks | — | ⭐ |
-| Every 2 Months | — | ⭐ |
-| Quarterly (Every 3 Months) | — | ⭐ |
-| Every 6 Months | — | ⭐ |
-| Leap Year (Every 4 Years) | — | ⭐ |
-| Every X Minutes | — | ⭐ |
-| Every X Hours | — | ⭐ |
-| Custom Days Interval | — | ⭐ |
-| Specific Dates | — | ⭐ |
-
-> If your 7-day trial expires, a banner offers one-click conversion of Premium repeat schedules to the nearest free option.
+1. Download or clone this repository
+2. Open Chrome and go to `chrome://extensions`
+3. Enable **Developer Mode** (top right toggle)
+4. Click **Load unpacked** and select the TabTimer folder
+5. The TabTimer icon will appear in your Chrome toolbar
 
 ---
 
-## Keyboard Shortcuts
+## Backup & Restore
 
-| Shortcut | Action |
-|---|---|
-| `Alt+L` | Schedule current page |
-| `Alt+U` | Unschedule current page |
-| `Alt+O` | Open TabTimer management |
-| `Ctrl+A` | Select all schedules |
-| `Shift+Click` | Select a range |
-| `Del` | Delete selected |
-| `Ctrl+D` | Duplicate selected |
-| `Ctrl+N` | New schedule |
-| `Ctrl+F` | Focus search |
-| `Ctrl+T` | Toggle theme |
-| `Ctrl+P` | Pause/Resume all |
-| `Esc` | Deselect / Close modal |
-| `?` | Show shortcuts help |
+TabTimer includes a full backup and restore system under **Backup/Sync** in the sidebar.
+
+- **Export** saves a JSON file with all your schedules, categories, settings, and license info
+- **Import** restores everything from that file, including custom categories like Mail, Phone, and Unlimited
+- Your premium license is always preserved during import — it will never be overwritten by a backup
 
 ---
 
-## Troubleshooting
+## Categories
 
-**Recurring schedule only fired once and stopped**
-Fixed in v2.8.1. Load the latest version. On startup, the health check will automatically repair any stuck schedules.
+TabTimer includes five default categories: Daily, Weekly, Monthly, Once, and Other.
 
-**Schedule didn't open at the right time**
-Was Chrome open? Were you on the correct Chrome profile? Check grace period in Settings → run Health Check.
+PRO users can create custom categories with a name, emoji, and color. To manage categories, click **Categories** in the Tools section of the sidebar.
 
-**Edit form showing wrong time**
-Fixed in v2.8.1. Now shows correct local time and auto-advances past recurring schedules to next occurrence.
-
-**Getting two notifications for one tab open**
-Fixed in v2.8.1. Reminder and open notifications no longer both fire.
-
-**Pages locking when I don't want them to**
-Settings → Default auto re-lock → Never → Save Settings.
-
-**Every X Hours saving wrong value**
-Fixed in v2.8.1. Delete and recreate any schedules created before this fix.
+- Click **+ Add Category** to create a new one
+- Click **✏️ Edit** to change the emoji, name, or color of any category
+- Custom categories show their emoji in the left sidebar for quick filtering
 
 ---
 
-## Privacy
+## Frequently Asked Questions
 
-- All data stored locally in your Chrome browser
-- No external servers, no tracking, no data collection, no advertising
-- Source code available on GitHub
+**Does TabTimer work when Chrome is closed?**
+No — Chrome must be running for TabTimer to open tabs at scheduled times. The extension runs in the background as long as Chrome is open.
+
+**What happens if I miss a scheduled time?**
+TabTimer has a built-in health check that repairs missed or stuck schedules automatically. One-time schedules that have passed are marked as complete. Recurring schedules are reset to the next valid time.
+
+**Will importing a backup erase my license?**
+No. Your active premium license is always preserved. Only trial information is restored from a backup if you do not already have a paid license.
+
+**What is Mon–Sat repeat?**
+Mon–Sat fires every day of the week except Sunday. This is useful for mail-in sweepstakes where entries must be postmarked on a weekday or Saturday but not Sunday.
+
+**Is my data private?**
+Yes. TabTimer stores all data locally on your device using Chrome's built-in storage. No data is sent to any server. There are no accounts, no tracking, and no ads.
 
 ---
 
-## Support
+## Pricing
 
-- 📧 **Email:** TabTimerPro@gmail.com
-- 🐛 **Bugs:** Open a GitHub issue
-- 💡 **Feature requests:** Open a GitHub issue with "Feature:" in the title
+| Plan | Price | Features |
+|------|-------|----------|
+| Free | $0 | Core scheduling, daily/weekly/monthly/once repeat, backup & restore |
+| PRO | $10 one-time | All repeat types, custom categories, notes, bulk import, sound alerts, and more |
+
+Purchase a PRO license at [tabtimerpro.com](https://tabtimerpro.com) or from the Premium button inside the extension.
 
 ---
 
-*Made with ❤️ for the sweepstakes and productivity community — Version 2.8.1*
+## Privacy Policy
+
+TabTimer does not collect, transmit, or store any personal data on external servers. All schedule data, settings, and license information are stored locally in your browser using `chrome.storage.local`. No analytics, no tracking, no ads.
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
+
+---
+
+## Publisher
+
+Published on the Chrome Web Store by **NestlyTab**.
+
+For support, feature requests, or bug reports, please open an issue on GitHub.

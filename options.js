@@ -42,6 +42,11 @@ function getRepeatDescription(lock) {
         nextTime.setDate(nextTime.getDate() + 1);
       } while (nextTime.getDay() === 0 || nextTime.getDay() === 6);
       return `Next: ${formatNextDate(nextTime)} (Weekdays)`;
+    case 'mon-sat':
+      do {
+        nextTime.setDate(nextTime.getDate() + 1);
+      } while (nextTime.getDay() === 0);
+      return `Next: ${formatNextDate(nextTime)} (Mon–Sat)`;
     case 'weekends':
       do {
         nextTime.setDate(nextTime.getDate() + 1);
@@ -426,10 +431,11 @@ function showLicenseStatus() {
   }
 }
 
-const PREMIUM_REPEAT_TYPES = ['weekdays','weekends','biweekly','every3weeks','bimonthly','quarterly','every6months','leapyear','minutes','hourly','custom-days','specific-dates'];
+const PREMIUM_REPEAT_TYPES = ['weekdays','weekends','mon-sat','biweekly','every3weeks','bimonthly','quarterly','every6months','leapyear','minutes','hourly','custom-days','specific-dates'];
 const FREE_REPEAT_LABEL = {
   weekdays: 'Daily (was Weekdays)',
   weekends: 'Weekly (was Weekends)',
+  'mon-sat': 'Daily (was Mon–Sat)',
   biweekly: 'Weekly (was Every 2 Weeks)',
   every3weeks: 'Weekly (was Every 3 Weeks)',
   bimonthly: 'Monthly (was Every 2 Months)',
@@ -442,7 +448,7 @@ const FREE_REPEAT_LABEL = {
   'specific-dates': 'none (was Specific Dates)'
 };
 const FREE_REPEAT_DOWNGRADE = {
-  weekdays: 'daily', weekends: 'weekly', biweekly: 'weekly',
+  weekdays: 'daily', weekends: 'weekly', 'mon-sat': 'daily', biweekly: 'weekly',
   every3weeks: 'weekly', bimonthly: 'monthly', quarterly: 'monthly',
   every6months: 'monthly', leapyear: 'yearly', minutes: 'daily',
   hourly: 'daily', 'custom-days': 'daily', 'specific-dates': 'none'
@@ -531,6 +537,24 @@ async function loadAllData() {
     // Load pause state
     const pauseResult = await chrome.storage.local.get(['pauseAll']);
     updatePauseButton(pauseResult.pauseAll || false);
+
+    // Merge any "orphan" categories — names used on schedule entries that have
+    // no matching category object. This happens after importing older backups.
+    const defaultNames = DEFAULT_CATEGORIES.map(d => d.name.toLowerCase());
+    const knownNames = categories.map(c => c.name.toLowerCase());
+    const orphans = [...new Set(locks.map(l => l.category).filter(Boolean))]
+      .filter(name => !knownNames.includes(name.toLowerCase()) && !defaultNames.includes(name.toLowerCase()));
+    if (orphans.length > 0) {
+      const newCats = orphans.map(name => ({
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        name: name,
+        emoji: '📁',
+        color: '#3b82f6'
+      }));
+      categories = [...categories, ...newCats];
+      await chrome.runtime.sendMessage({ action: 'updateCategories', categories });
+      console.log('TabTimer: Auto-created missing category objects:', orphans);
+    }
   } catch (e) {
     console.error('Error loading data:', e);
     locks = [];
@@ -613,6 +637,7 @@ function loadSettingsIntoForm() {
 async function refreshData() {
   await loadAllData();
   renderSchedules();
+  renderCategories();
   updateStats();
   populateCategoryDropdowns();
 }
@@ -678,7 +703,9 @@ function updateStats() {
       filterEl.className = 'sidebar-item';
       filterEl.dataset.filter = `cat-custom-${cat.toLowerCase().replace(/\s+/g, '-')}`;
       filterEl.dataset.category = cat;
-      filterEl.innerHTML = `📁 ${cat} <span class="count">${count}</span>`;
+      const catData = categories.find(c => c.name === cat);
+      const catEmoji = catData ? (catData.emoji || '📁') : '📁';
+      filterEl.innerHTML = `${catEmoji} ${cat} <span class="count">${count}</span>`;
       filterEl.addEventListener('click', () => {
         document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
         filterEl.classList.add('active');
@@ -1105,20 +1132,57 @@ function renderCategories() {
   const container = document.getElementById('categoriesList');
   if (!container) return;
   
+  const defaultIds = DEFAULT_CATEGORIES.map(d => d.id);
   const cats = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORIES;
   
-  container.innerHTML = cats.map(cat => `
+  container.innerHTML = cats.map(cat => {
+    const isDefault = defaultIds.includes(cat.id);
+    return `
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px;">
       <div style="display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 20px;">${cat.emoji || '📌'}</span>
         <span style="font-weight: 500;">${cat.name}</span>
         <span style="width: 16px; height: 16px; border-radius: 50%; background: ${cat.color || '#3b82f6'};"></span>
       </div>
-      <button class="btn btn-outline btn-sm delete-category-btn" data-id="${cat.id}" style="color: var(--danger);">Delete</button>
-    </div>
-  `).join('');
+      <div style="display: flex; gap: 6px;">
+        <button class="btn btn-outline btn-sm edit-category-btn" data-id="${cat.id}" title="Edit emoji, name or color">✏️ Edit</button>
+        ${isDefault ? '' : `<button class="btn btn-outline btn-sm delete-category-btn" data-id="${cat.id}" style="color: var(--danger);">Delete</button>`}
+      </div>
+    </div>`;
+  }).join('');
   
-  // Add delete handlers
+  // Edit handlers
+  container.querySelectorAll('.edit-category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const cat = categories.find(c => c.id === id) || DEFAULT_CATEGORIES.find(c => c.id === id);
+      if (!cat) return;
+
+      const newEmoji = prompt('Enter emoji for category:', cat.emoji || '📌');
+      if (newEmoji === null) return; // cancelled
+      const newName = prompt('Enter category name:', cat.name);
+      if (!newName) return;
+      const newColor = prompt('Enter color hex code:', cat.color || '#3b82f6');
+      if (newColor === null) return;
+
+      // If editing a default category, promote it into the custom categories array
+      const idx = categories.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        categories[idx] = { ...categories[idx], emoji: newEmoji || '📌', name: newName, color: newColor || '#3b82f6' };
+      } else {
+        // Was a default-only category — add it to custom list with edits
+        categories.push({ id, name: newName, emoji: newEmoji || '📌', color: newColor || '#3b82f6' });
+      }
+
+      chrome.runtime.sendMessage({ action: 'updateCategories', categories });
+      renderCategories();
+      populateCategoryDropdowns();
+      updateStats();
+      showToast(`Category "${newName}" updated`);
+    });
+  });
+
+  // Delete handlers (custom categories only)
   container.querySelectorAll('.delete-category-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.id;

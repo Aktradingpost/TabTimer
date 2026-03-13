@@ -172,9 +172,6 @@ async function runScheduleHealthCheck() {
       const stuckOpenedNeverLock = lock.opened && !lock.autoRelockAt && lock.lockMinutes === 0;
       
       if (timeInPast || stuckOpenedNeverLock) {
-        // For minutes/hourly intervals, always base next run on NOW so the schedule
-        // resumes immediately rather than jumping back to the original start time.
-        // All other repeat types use calendar math stepping forward from original time.
         let nextUnlock;
         const rType = lock.repeatType || 'daily';
         if (rType === 'minutes') {
@@ -777,7 +774,6 @@ async function _checkAndOpenLocksImpl() {
   }
 } // end _checkAndOpenLocksImpl
 
-// Helper: get or create a normal browser window
 async function getOrCreateWindow() {
   const windows = await chrome.windows.getAll({ windowTypes: ['normal'] });
   const visible = windows.filter(w => w.state !== 'minimized');
@@ -1068,6 +1064,11 @@ function calculateNextUnlockTime(lock) {
       do {
         currentUnlock.setDate(currentUnlock.getDate() + 1);
       } while (currentUnlock.getDay() === 0 || currentUnlock.getDay() === 6);
+      break;
+    case 'mon-sat':
+      do {
+        currentUnlock.setDate(currentUnlock.getDate() + 1);
+      } while (currentUnlock.getDay() === 0);
       break;
     case 'weekends':
       do {
@@ -1929,6 +1930,26 @@ async function importFullBackup(data) {
     }
     if (data.categories) {
       await chrome.storage.local.set({ categories: data.categories });
+    }
+    
+    // Also ensure any category names used in the imported locks have a matching
+    // category object — older backups may have schedule entries without saved category objects.
+    if (data.locks && data.locks.length > 0) {
+      const catResult = await chrome.storage.local.get('categories');
+      const existingCats = catResult.categories || [];
+      const knownNames = existingCats.map(c => c.name.toLowerCase());
+      const uniqueCatNames = [...new Set(data.locks.map(l => l.category).filter(Boolean))];
+      const missing = uniqueCatNames.filter(name => !knownNames.includes(name.toLowerCase()));
+      if (missing.length > 0) {
+        const newCats = missing.map(name => ({
+          id: name.toLowerCase().replace(/\s+/g, '-'),
+          name: name,
+          emoji: '📁',
+          color: '#3b82f6'
+        }));
+        await chrome.storage.local.set({ categories: [...existingCats, ...newCats] });
+        console.log('TabTimer: Auto-created category objects for:', missing);
+      }
     }
     if (data.folders) {
       await chrome.storage.local.set({ folders: data.folders });

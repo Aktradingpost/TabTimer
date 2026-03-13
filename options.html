@@ -865,6 +865,7 @@
               <optgroup label="⭐ Premium">
                 <option value="weekdays">Weekdays (Mon-Fri) — PRO</option>
                 <option value="weekends">Weekends (Sat-Sun) — PRO</option>
+                <option value="mon-sat">Mon–Sat (No Sundays) — PRO</option>
                 <option value="biweekly">Every 2 Weeks — PRO</option>
                 <option value="every3weeks">Every 3 Weeks — PRO</option>
                 <option value="bimonthly">Every 2 Months — PRO</option>
@@ -932,12 +933,10 @@
           <div class="form-group premium-feature">
             <label>📝 Notes <span class="premium-badge" style="font-size: 10px; padding: 2px 6px; margin-left: 4px;">PRO</span></label>
             <textarea id="newNotes" rows="4" placeholder="Paste entry instructions, reminders, or any notes about this schedule..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: vertical; min-height: 80px; max-height: 300px;"></textarea>
-            <small style="color: var(--text-muted);">Use this to add reminders, instructions, or any other notes for this schedule.</small>
           </div>
           <div class="form-group premium-locked">
             <label>📝 Notes</label>
             <textarea rows="4" disabled placeholder="Upgrade to Pro to add notes to your schedules." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; min-height: 80px; opacity: 0.5; cursor: not-allowed; background: var(--bg-card);"></textarea>
-            <small style="color: var(--text-muted);">⭐ <a href="#" onclick="showPremiumPrompt(); return false;" style="color: var(--primary);">Upgrade to Pro</a> to add notes to your schedules.</small>
           </div>
           <br>
           <button class="btn btn-primary" id="createScheduleBtn">Create Schedule</button>
@@ -994,6 +993,7 @@
                   <option value="daily">Daily</option>
                   <option value="weekdays">Weekdays</option>
                   <option value="weekends">Weekends</option>
+                  <option value="mon-sat">Mon–Sat (No Sundays)</option>
                   <option value="weekly">Weekly</option>
                   <option value="biweekly">Every 2 Weeks</option>
                   <option value="every3weeks">Every 3 Weeks</option>
@@ -1106,6 +1106,7 @@
                   <option value="daily">Daily</option>
                   <option value="weekdays">Weekdays</option>
                   <option value="weekends">Weekends</option>
+                  <option value="mon-sat">Mon–Sat (No Sundays)</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                   <option value="yearly">Yearly</option>
@@ -1164,6 +1165,7 @@
                   <option value="daily">Daily</option>
                   <option value="weekdays">Weekdays</option>
                   <option value="weekends">Weekends</option>
+                  <option value="mon-sat">Mon–Sat (No Sundays)</option>
                   <option value="weekly">Weekly</option>
                   <option value="biweekly">Every 2 Weeks</option>
                   <option value="every3weeks">Every 3 Weeks</option>
@@ -1513,6 +1515,7 @@
             <option value="daily">Daily</option>
             <option value="weekdays">Weekdays (Mon-Fri)</option>
             <option value="weekends">Weekends (Sat-Sun)</option>
+            <option value="mon-sat">Mon–Sat (No Sundays) — PRO</option>
             <option value="weekly">Weekly</option>
             <option value="biweekly">Every 2 Weeks</option>
             <option value="every3weeks">Every 3 Weeks</option>
