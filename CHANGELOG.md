@@ -2,6 +2,20 @@
 
 ---
 
+## v2.8.21 — March 2026
+
+### New Features
+- **Google Drive History (FREE + PRO)** — export your schedule history directly to a Google Sheet in your own Google Drive; keeps a permanent record of all schedules including expired and deleted ones, so you can look back months later and see exactly how many times you entered any sweepstakes
+- **History tab in Google Sheet** — every schedule you have ever created is logged permanently; when a schedule expires or is deleted from TabTimer it is automatically marked "Expired" in the sheet rather than removed
+- **Active Schedules tab in Google Sheet** — a live snapshot of everything currently scheduled in TabTimer, refreshed every time you sync
+- **Manual Export to Drive (FREE)** — connect your Google account and export to your sheet any time with one click
+- **Auto-sync daily to Drive (PRO)** — TabTimer automatically updates your Google Sheet every day without you having to do anything
+
+### Bug Fixes
+- **Schedules no longer open a day early** — fixed a bug in the Health Check where a brand new recurring schedule with a future start date was incorrectly treated as "stuck" and advanced forward, causing it to fire one day earlier than intended; the Health Check now correctly leaves any schedule whose next open time is still in the future completely untouched
+
+---
+
 ## v2.8.20 — March 2026
 
 ### Bug Fixes

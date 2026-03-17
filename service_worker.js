@@ -167,11 +167,13 @@ async function runScheduleHealthCheck() {
     if (lock.recurring) {
       const unlockTime = new Date(lock.unlockTime).getTime();
       
-      // Stuck if: time is in the past, OR opened=true with no autoRelockAt (Never Lock stuck)
-      const timeInPast = unlockTime < now;
+      // Stuck if: time is in the past AND already opened, OR opened=true with no autoRelockAt (Never Lock stuck)
+      // IMPORTANT: Do NOT advance a schedule whose unlockTime is still in the future —
+      // that means it was intentionally scheduled ahead and hasn't fired yet.
+      const timeInPastAndOpened = unlockTime < now && lock.opened;
       const stuckOpenedNeverLock = lock.opened && !lock.autoRelockAt && lock.lockMinutes === 0;
       
-      if (timeInPast || stuckOpenedNeverLock) {
+      if (timeInPastAndOpened || stuckOpenedNeverLock) {
         let nextUnlock;
         const rType = lock.repeatType || 'daily';
         if (rType === 'minutes') {
@@ -400,6 +402,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     checkAndOpenLocks();
   } else if (alarm.name === 'autoBackup') {
     performAutoBackup();
+  } else if (alarm.name === 'gdrive-daily-sync') {
+    performGdriveDailySync();
   } else if (alarm.name.startsWith('autoclose-')) {
     const tabId = parseInt(alarm.name.replace('autoclose-', ''));
     chrome.tabs.remove(tabId).catch(() => {});
@@ -508,6 +512,24 @@ async function _checkAndOpenLocksImpl() {
   // Advance reminder window: fire once per schedule when we enter the reminder window
   const notifSeconds = settings.notificationSeconds !== undefined ? settings.notificationSeconds : 10;
   const REMINDER_WINDOW_MS = notifSeconds * 1000;
+
+  // First pass: collect any locks that have hit their expireTime
+  const toExpire = [];
+  for (const lock of locks) {
+    if (lock.expireTime) {
+      const expireMs = new Date(lock.expireTime).getTime();
+      if (now >= expireMs) {
+        console.log(`TabTimer: Silently deleting expired schedule "${lock.name}" (expireTime reached)`);
+        toExpire.push(lock.id);
+      }
+    }
+  }
+  if (toExpire.length > 0) {
+    await deleteLocks(toExpire);
+    triggerGdriveSync();
+    // Reload locks after deletion and exit — next tick will process remaining
+    return;
+  }
 
   for (const lock of locks) {
     // Skip if manually unlocked (user explicitly unlocked it)
@@ -765,6 +787,8 @@ async function _checkAndOpenLocksImpl() {
     
     if (filtered.length !== locks.length) {
       await chrome.storage.local.set({ locks: filtered });
+      // Trigger immediate Google Drive sync to mark expired schedules
+      triggerGdriveSync();
       return;
     }
   }
@@ -786,7 +810,9 @@ async function getOrCreateWindow() {
 async function openScheduledTab(lock, locks, settings, now) {
   try {
     const windowId = await getOrCreateWindow();
-    const tab = await chrome.tabs.create({ url: lock.url, active: !settings.openInBackground, windowId });
+    // Per-schedule takeFocus overrides the global openInBackground setting
+    const shouldFocus = lock.takeFocus ? true : !settings.openInBackground;
+    const tab = await chrome.tabs.create({ url: lock.url, active: shouldFocus, windowId });
     
     trackTabForResolvedUrl(tab.id, lock.id);
     
@@ -1427,11 +1453,16 @@ async function createLock(lockData) {
     openCount: 0,
     manuallyUnlocked: false,
     notes: lockData.notes || '',
-    reminderSent: false
+    reminderSent: false,
+    expireTime: lockData.expireTime || null,
+    takeFocus: lockData.takeFocus || false
   };
   
   locks.push(newLock);
   await chrome.storage.local.set({ locks });
+  
+  // Trigger immediate Google Drive sync if enabled
+  triggerGdriveSync();
   
   return { success: true, lock: newLock };
 }
@@ -1458,6 +1489,10 @@ async function updateLock(updatedLock) {
     
     locks[index] = newLock;
     await chrome.storage.local.set({ locks });
+    
+    // Trigger immediate Google Drive sync if enabled
+    triggerGdriveSync();
+    
     return { success: true };
   }
   
@@ -1471,6 +1506,9 @@ async function deleteLock(id) {
   locks = locks.filter(l => l.id !== id);
   await chrome.storage.local.set({ locks });
   
+  // Trigger immediate Google Drive sync if enabled
+  triggerGdriveSync();
+  
   return { success: true };
 }
 
@@ -1480,6 +1518,9 @@ async function deleteLocks(ids) {
   
   locks = locks.filter(l => !ids.includes(l.id));
   await chrome.storage.local.set({ locks });
+  
+  // Trigger immediate Google Drive sync if enabled
+  triggerGdriveSync();
   
   return { success: true, deleted: ids.length };
 }
@@ -2145,4 +2186,147 @@ async function updateSortOrder(orderArray) {
   await chrome.storage.local.set({ locks: reorderedLocks });
   
   return { success: true, count: reorderedLocks.length };
+}
+
+// ============================================
+// GOOGLE DRIVE IMMEDIATE SYNC TRIGGER
+// ============================================
+
+// Debounce timer — prevents firing multiple times in rapid succession
+let gdriveSyncTimer = null;
+
+function triggerGdriveSync() {
+  // Clear any pending sync — debounce rapid changes (e.g. bulk delete)
+  if (gdriveSyncTimer) clearTimeout(gdriveSyncTimer);
+  gdriveSyncTimer = setTimeout(async () => {
+    const result = await chrome.storage.local.get(['gdriveAutoSync', 'gdriveConnected', 'gdriveSheetId']);
+    if (result.gdriveAutoSync && result.gdriveConnected && result.gdriveSheetId) {
+      console.log('TabTimer: Triggering immediate Google Drive sync after schedule change');
+      performGdriveDailySync();
+    }
+  }, 3000); // Wait 3 seconds after last change before syncing
+}
+
+// ============================================
+// GOOGLE DRIVE DAILY AUTO-SYNC
+// ============================================
+
+async function performGdriveDailySync() {
+  const result = await chrome.storage.local.get([
+    'gdriveAutoSync', 'gdriveConnected', 'gdriveSheetId',
+    'gdriveToken', 'locks', 'gdriveHistoryIds', 'license'
+  ]);
+
+  // Only run if enabled, connected, and PRO
+  if (!result.gdriveAutoSync || !result.gdriveConnected || !result.gdriveSheetId) return;
+
+  const license = result.license || {};
+  const isPro = (license.key && license.validated === true) ||
+    (license.trialStarted && (() => {
+      const trialStart = new Date(license.trialStarted);
+      const trialDays = license.trialDays || 7;
+      const trialEnd = new Date(trialStart.getTime() + trialDays * 24 * 60 * 60 * 1000);
+      return new Date() < trialEnd;
+    })());
+  if (!isPro) return;
+
+  try {
+    // Get a fresh token silently
+    const token = await new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({ interactive: false }, (t) => {
+        if (chrome.runtime.lastError || !t) reject(new Error('Token unavailable'));
+        else resolve(t);
+      });
+    });
+
+    const locks = result.locks || [];
+    const sheetId = result.gdriveSheetId;
+    const historyIds = new Set(result.gdriveHistoryIds || []);
+
+    // Append new schedules to History tab
+    const newLocks = locks.filter(l => !historyIds.has(l.id));
+    if (newLocks.length > 0) {
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: newLocks.map(l => formatLockRowSW(l)) })
+        }
+      );
+      const allHistoryIds = [...historyIds, ...newLocks.map(l => l.id)];
+      await chrome.storage.local.set({ gdriveHistoryIds: allHistoryIds });
+    }
+
+    // Mark expired rows in History
+    const historyResp = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const historyData = await historyResp.json();
+    const historyRows = historyData.values || [];
+    const activeLockKeys = new Set(locks.map(l => `${l.url}||${l.name}`));
+    const batchUpdates = [];
+    historyRows.forEach((row, idx) => {
+      const key = `${row[1] || ''}||${row[0] || ''}`;
+      if (!activeLockKeys.has(key) && (row[10] || '') !== 'Expired') {
+        batchUpdates.push({ range: `History!L${idx + 2}`, values: [['Expired']] });
+      }
+    });
+    if (batchUpdates.length > 0) {
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchUpdate`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ valueInputOption: 'RAW', data: batchUpdates })
+        }
+      );
+    }
+
+    // Refresh Active Schedules tab
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Active Schedules!A2:L`,
+      {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: locks.length > 0 ? locks.map(l => formatLockRowSW(l)) : [[]] })
+      }
+    );
+
+    await chrome.storage.local.set({ gdriveLastSync: new Date().toISOString() });
+    console.log('TabTimer: Google Drive daily sync complete');
+
+  } catch (err) {
+    console.error('TabTimer: Google Drive daily sync failed:', err);
+  }
+}
+
+function formatLockRowSW(lock) {
+  const repeatLabels = {
+    'daily': 'Daily', 'weekly': 'Weekly', 'monthly': 'Monthly',
+    'once': 'Once', 'yearly': 'Yearly', 'weekdays': 'Weekdays (Mon-Fri)',
+    'weekends': 'Weekends (Sat-Sun)', 'mon-sat': 'Mon-Sat',
+    'biweekly': 'Every 2 Weeks', 'triweekly': 'Every 3 Weeks',
+    'bimonthly': 'Every 2 Months', 'quarterly': 'Quarterly',
+    'semiannual': 'Every 6 Months', 'leap-year': 'Leap Year',
+    'hourly': `Every ${lock.hourlyInterval || 1} Hours`,
+    'minutes': `Every ${lock.minuteInterval || 10} Minutes`,
+    'custom-days': `Every ${lock.customDays || 2} Days`,
+    'specific-dates': 'Specific Dates'
+  };
+  return [
+    lock.name || '',
+    lock.url || '',
+    lock.category || '',
+    repeatLabels[lock.repeatType] || lock.repeatType || '',
+    lock.unlockTime ? new Date(lock.unlockTime).toLocaleString() : '',
+    lock.expirationDate ? new Date(lock.expirationDate).toLocaleDateString() : '',
+    lock.expireTime ? new Date(lock.expireTime).toLocaleString() : '',
+    (lock.openCount || 0).toString(),
+    lock.lockedAt ? new Date(lock.lockedAt).toLocaleString() : '',
+    lock.openCount > 0 ? 'Yes' : 'Never',
+    lock.expired ? 'Expired' : (lock.active === false ? 'Paused' : 'Active'),
+    lock.notes || ''
+  ];
 }

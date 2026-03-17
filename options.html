@@ -699,6 +699,7 @@
         <a class="sidebar-item premium-locked" data-action="showPremiumPrompt" style="opacity: 0.6;">&#127991; Categories <span style="font-size: 10px; padding: 2px 6px; margin-left: 4px; background: #94a3b8; border-radius: 4px;">🔒</span></a>
         <a class="sidebar-item" data-view="backup">&#128190; Backup/Sync</a>
         <a class="sidebar-item" data-view="settings">&#9881; Settings</a>
+        <a class="sidebar-item" href="https://chromewebstore.google.com/detail/tabtimer-smart-website-sc/icpbkkfikopgdjppdhblbdkljliccpbf/reviews" target="_blank" style="color: #fbbf24; margin-top: 4px;">&#11088; Leave a Review</a>
       </div>
     </nav>
     
@@ -831,6 +832,11 @@
             <small style="color: var(--text-muted);">Names starting with YYYY-MM-DD will auto-delete after that date</small>
           </div>
           <div class="form-group">
+            <label>Expire Time <span style="color: var(--text-muted); font-weight: 400; font-size: 12px;">(optional — schedule will be silently deleted at this exact date &amp; time)</span></label>
+            <input type="datetime-local" id="newExpireTime" step="1">
+            <small style="color: var(--text-muted);">Leave blank if this schedule does not have a specific expiration time. Note: if your schedule Name starts with a date (e.g. 2026-03-31), it will also auto-delete based on your <strong>Expiration Time</strong> and <strong>Timezone</strong> set under Settings.</small>
+          </div>
+          <div class="form-group">
             <label>Category</label>
             <select id="newCategory"></select>
           </div>
@@ -930,6 +936,10 @@
           <div class="form-group">
             <label><input type="checkbox" id="newPlaySound"> 🔊 Play sound when tab opens</label>
           </div>
+          <div class="form-group">
+            <label><input type="checkbox" id="newTakeFocus"> 🎯 Take focus when opening</label>
+            <small style="color: var(--text-muted); display: block; margin-top: 3px; margin-left: 24px;">This tab will come to the front when it opens, regardless of your global background setting</small>
+          </div>
           <div class="form-group premium-feature">
             <label>📝 Notes <span class="premium-badge" style="font-size: 10px; padding: 2px 6px; margin-left: 4px;">PRO</span></label>
             <textarea id="newNotes" rows="4" placeholder="Paste entry instructions, reminders, or any notes about this schedule..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: vertical; min-height: 80px; max-height: 300px;"></textarea>
@@ -955,7 +965,8 @@
           <div class="card-tab-content active" id="tab-text">
             <div class="form-group">
               <label>URLs (one per line)</label>
-              <textarea id="bulkUrls" rows="8" placeholder="https://example1.com&#10;https://example2.com"></textarea>
+              <textarea id="bulkUrls" rows="8" placeholder="https://example1.com&#10;https://example2.com&#10;https://example3.com | 2026-03-31 09:00 AM (optional expire time)"></textarea>
+              <small style="color: var(--text-muted); margin-top: 4px; display: block;">💡 To set an individual expire time, add a pipe after the URL: <strong>https://example.com | 2026-03-31 09:00</strong></small>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -1066,6 +1077,13 @@
                     <label>Name / Description</label>
                     <input type="text" id="csvNamePrefix" placeholder="e.g., My Schedule Name" style="width: 100%;">
                     <small style="color: var(--text-muted);">Applied to all URLs without a name in the file</small>
+                  </div>
+                </div>
+                <div class="form-row" style="margin-top: 12px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label>Expire Time <span style="color: var(--text-muted); font-weight: 400; font-size: 12px;">(optional — silently deleted at this exact date &amp; time)</span></label>
+                    <input type="datetime-local" id="csvExpireTime" step="1" style="width: 100%;">
+                    <small style="color: var(--text-muted);">Leave blank if these schedules do not have a specific expiration time</small>
                   </div>
                 </div>
               </div>
@@ -1215,34 +1233,110 @@
       </div>
       
       <div id="view-backup" class="view-content" style="display: none;">
-        <!-- Cloud Sync Card (Premium) -->
+
+        <!-- Google Drive History Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📊 Google Drive History</h3>
+          </div>
+          <p style="color: var(--text-muted); margin-bottom: 16px;">
+            Export your schedule history to a Google Sheet. Keeps a permanent record of all schedules — 
+            including expired ones — so you can look back and see how many times you visited any site.
+          </p>
+
+          <!-- Status bar -->
+          <div id="gdriveSyncStatus" style="padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="gdriveStatusIcon">📊</span>
+              <span id="gdriveStatusText">Not connected to Google Drive</span>
+            </div>
+            <div id="gdriveLastSync" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;"></div>
+            <div id="gdriveSheetLink" style="font-size: 12px; margin-top: 6px; display: none;">
+              <a id="gdriveSheetUrl" href="#" target="_blank" style="color: var(--accent);">📄 Open TabTimer History Sheet</a>
+            </div>
+          </div>
+
+          <!-- Simple connect info shown when not connected -->
+          <div id="gdriveSetupInstructions" style="margin-bottom: 20px; padding: 14px; background: var(--bg); border-radius: 10px; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 13px; color: var(--text); line-height: 1.8;">
+              <strong>🔗 How to connect:</strong><br>
+              <span style="color: var(--text-muted);">
+                1. Click <strong>Connect Google Account</strong> below<br>
+                2. Sign in with your Google account and click <strong>Allow</strong><br>
+                3. TabTimer will automatically create a <strong>TabTimer History</strong> spreadsheet in your Google Drive<br>
+                4. Click <strong>Export to Drive Now</strong> any time to update your sheet
+              </span>
+            </div>
+            <div style="margin-top: 12px; padding: 10px; background: #f0fdf4; border-radius: 8px; font-size: 12px; color: #166534;">
+              💡 <strong>Your data stays private.</strong> TabTimer only creates and updates the TabTimer History sheet in your own Google Drive. Nothing is shared with anyone else.
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <button class="btn btn-primary" id="gdriveConnectBtn">
+              🔗 Connect Google Account
+            </button>
+            <button class="btn btn-secondary" id="gdriveExportNowBtn" disabled>
+              ⬆️ Export to Drive Now
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="gdriveAutoSync">
+              <span>Auto-sync to Google Drive</span>
+              <span class="premium-badge" style="font-size: 10px; padding: 2px 6px;">PRO</span>
+            </label>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; margin-left: 24px;">
+              Syncs immediately whenever you add, edit, or delete a schedule, plus a full daily refresh as a safety net.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label style="font-size: 13px; color: var(--text-muted);">
+              💡 Your Google Sheet will have two tabs:<br>
+              &nbsp;&nbsp;• <strong>History</strong> — permanent record of all schedules, including expired ones<br>
+              &nbsp;&nbsp;• <strong>Active Schedules</strong> — live snapshot of what's currently scheduled
+            </label>
+          </div>
+
+          <button class="btn btn-outline btn-sm" id="gdriveDisconnectBtn" style="display: none; margin-top: 8px;">
+            🔌 Disconnect Google Account
+          </button>
+          <button class="btn btn-danger btn-sm" id="gdriveResetSheetBtn" style="display: none; margin-top: 8px; margin-left: 8px;">
+            🗑️ Reset &amp; Recreate Sheet
+          </button>
+        </div>
+
+        <!-- Device Transfer Card (Premium) -->
         <div class="card premium-feature">
           <div class="card-header">
-            <h3 class="card-title">☁️ Cloud Sync <span class="premium-badge" style="font-size: 10px; padding: 2px 6px; margin-left: 4px;">PRO</span></h3>
+            <h3 class="card-title">📤 Device Transfer <span class="premium-badge" style="font-size: 10px; padding: 2px 6px; margin-left: 4px;">PRO</span></h3>
           </div>
-          <p style="color: var(--text-muted); margin-bottom: 16px;">Sync your schedules across devices. Export to cloud storage or import from another device.</p>
+          <p style="color: var(--text-muted); margin-bottom: 16px;">Transfer your schedules to another device. Export downloads a file you can copy to your other computer, then import it there to load your schedules. This is for moving schedules between devices, not automatic syncing.</p>
           
           <div id="cloudSyncStatus" style="padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span id="cloudSyncIcon">☁️</span>
-              <span id="cloudSyncStatusText">Not synced yet</span>
+              <span id="cloudSyncIcon">📤</span>
+              <span id="cloudSyncStatusText">Not transferred yet</span>
             </div>
             <div id="lastSyncTime" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;"></div>
           </div>
           
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
             <button class="btn btn-primary" id="cloudExportBtn">
-              ⬆️ Export for Sync
+              ⬆️ Export for Transfer
             </button>
             <button class="btn btn-secondary" id="cloudImportBtn">
-              ⬇️ Import from Sync
+              ⬇️ Import from Transfer
             </button>
           </div>
           
           <div class="form-group">
             <label style="font-size: 13px; color: var(--text-muted);">
-              💡 How to sync: Export your data, save the file to cloud storage (Google Drive, Dropbox, etc.), 
-              then import from another device. Your schedules will be merged without duplicates.
+              💡 How it works: Click <strong>Export for Transfer</strong> to download your schedules as a file. Copy that file to your other device (via USB, email, AirDrop, etc.), then open TabTimer there and click <strong>Import from Transfer</strong>. Your schedules will be merged without duplicates.<br><br>
+              💡 Want automatic backups to Google Drive instead? Use the <strong>Google Drive History</strong> feature above.
             </label>
           </div>
           
@@ -1450,6 +1544,24 @@
           <button class="btn btn-outline" id="repairSchedulesBtn" style="margin-left: 8px;">🔧 Repair Stuck Schedules</button>
           <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">If schedules aren't opening, click Repair to fix any stuck recurring schedules.</p>
         </div>
+
+        <!-- Leave a Review Card -->
+        <div class="card" style="text-align: center; padding: 28px;">
+          <div style="font-size: 36px; margin-bottom: 12px;">⭐</div>
+          <h3 style="font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 18px; margin-bottom: 8px;">Enjoying TabTimer?</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px; line-height: 1.6;">
+            A quick review on the Chrome Web Store helps other users find TabTimer and takes less than a minute. We read every review and truly appreciate your support!
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="https://chromewebstore.google.com/detail/tabtimer-smart-website-sc/icpbkkfikopgdjppdhblbdkljliccpbf/reviews" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              ⭐ Leave a Review
+            </a>
+            <a href="https://aktradingpost.github.io/TabTimer/" target="_blank" class="btn btn-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              🌐 Visit TabTimer Website
+            </a>
+          </div>
+        </div>
+
       </div>
     </main>
   </div>
@@ -1480,6 +1592,11 @@
         <div class="form-group">
           <label>Name</label>
           <input type="text" id="editName">
+        </div>
+        <div class="form-group">
+          <label>Expire Time <span style="color: var(--text-muted); font-weight: 400; font-size: 12px;">(optional — schedule will be silently deleted at this exact date &amp; time)</span></label>
+          <input type="datetime-local" id="editExpireTime" step="1">
+          <small style="color: var(--text-muted);">Leave blank if this schedule does not have a specific expiration time. Note: if your schedule Name starts with a date (e.g. 2026-03-31), it will also auto-delete based on your <strong>Expiration Time</strong> and <strong>Timezone</strong> set under Settings.</small>
         </div>
         <div class="form-group">
           <label>Category</label>
@@ -1557,6 +1674,10 @@
         </div>
         <div class="form-group">
           <label><input type="checkbox" id="editPlaySound"> 🔊 Play sound when tab opens</label>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="editTakeFocus"> 🎯 Take focus when opening</label>
+          <small style="color: var(--text-muted); display: block; margin-top: 3px; margin-left: 24px;">This tab will come to the front when it opens, regardless of your global background setting</small>
         </div>
         
         <!-- Notes (Premium) -->
@@ -1840,7 +1961,32 @@
   </div>
   
   <div class="toast" id="toast"><span id="toastMessage">Success!</span></div>
-  
+
+  <!-- Bookmark Expire Time Modal -->
+  <div class="modal-overlay" id="bmExpireModal" style="display:none;">
+    <div class="modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3>⏱️ Set Expire Time</h3>
+        <button class="modal-close" id="bmExpireModalClose">&times;</button>
+      </div>
+      <div style="padding: 20px;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 6px;">Bookmark:</p>
+        <div id="bmExpireBookmarkName" style="font-weight: 700; font-size: 15px; margin-bottom: 4px;"></div>
+        <div id="bmExpireBookmarkUrl" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; word-break: break-all;"></div>
+        <p style="font-size: 14px; margin-bottom: 8px;">This bookmark expires on <strong id="bmExpireDate"></strong>. Would you like to set a specific time it should be deleted?</p>
+        <div class="form-group">
+          <label>Expire at this exact time <span style="color: var(--text-muted); font-size: 12px;">(optional)</span></label>
+          <input type="datetime-local" id="bmExpireTimeInput" step="1" style="width: 100%;">
+          <small style="color: var(--text-muted);">Leave blank to use the default expiration time from Settings</small>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button class="btn btn-primary" id="bmExpireConfirmBtn" style="flex: 1;">✅ Set Expire Time</button>
+          <button class="btn btn-outline" id="bmExpireSkipBtn" style="flex: 1;">⏭️ Skip (use default)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="xlsx-parser.js"></script>
   <script src="options.js"></script>
 </body>

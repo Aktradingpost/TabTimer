@@ -129,6 +129,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   setupKeyboardShortcuts();
 
+  // Silently repair any stuck schedules every time the page opens
+  // No UI shown unless something was actually fixed
+  try {
+    const healthResult = await chrome.runtime.sendMessage({ action: 'runHealthCheck' });
+    if (healthResult.success && healthResult.totalFixed > 0) {
+      console.log(`TabTimer: Auto-repaired ${healthResult.totalFixed} stuck schedule(s) on page load`);
+      await refreshData();
+      showToast(`🔧 Auto-repaired ${healthResult.totalFixed} stuck schedule(s)`);
+    }
+  } catch(e) {
+    // Silent fail — don't bother the user if health check errors
+  }
+
   // ── How TabTimer Works notice ──────────────────────────
   // Runs once right after DOM is ready so buttons always work
   (function setupHowItWorksNotice() {
@@ -251,19 +264,37 @@ async function checkLicense() {
     return;
   }
   
-  // Check if trial has been started
+  // Check if trial has been started locally
   if (license.trialStarted) {
     const trialEnd = license.trialStarted + (license.trialDays || 7) * 24 * 60 * 60 * 1000;
     if (Date.now() < trialEnd) {
-      // Trial still active
       const daysLeft = Math.ceil((trialEnd - Date.now()) / (24 * 60 * 60 * 1000));
       licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft };
       return;
     } else {
-      // Trial expired - back to free
       licenseStatus = { status: 'trialExpired', valid: false, trial: false, expired: true };
       return;
     }
+  }
+
+  // No local trial — check sync storage to catch reinstall abuse
+  try {
+    const syncResult = await chrome.storage.sync.get(['trialUsed', 'trialStarted']);
+    if (syncResult.trialUsed) {
+      // Trial was used before — restore to local and mark as expired
+      const trialStarted = syncResult.trialStarted || (Date.now() - 8 * 24 * 60 * 60 * 1000);
+      await chrome.storage.local.set({ license: { trialStarted, trialDays: 7 } });
+      const trialEnd = trialStarted + 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() < trialEnd) {
+        const daysLeft = Math.ceil((trialEnd - Date.now()) / (24 * 60 * 60 * 1000));
+        licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft };
+      } else {
+        licenseStatus = { status: 'trialExpired', valid: false, trial: false, expired: true };
+      }
+      return;
+    }
+  } catch(e) {
+    // Sync storage unavailable — fall through to free
   }
   
   // No trial started yet - free user
@@ -271,22 +302,35 @@ async function checkLicense() {
 }
 
 async function startTrial() {
-  // First check if trial was already used
-  const result = await chrome.storage.local.get(['license']);
-  const existingLicense = result.license || {};
-  
-  // If trial was already started (even if expired), don't allow another trial
-  if (existingLicense.trialStarted) {
-    const trialEnd = existingLicense.trialStarted + (existingLicense.trialDays || 7) * 24 * 60 * 60 * 1000;
+  // Check chrome.storage.sync first — this persists across uninstalls/reinstalls
+  // tied to the user's Google account, preventing trial abuse
+  const syncResult = await chrome.storage.sync.get(['trialUsed', 'trialStarted']);
+
+  // Also check local storage
+  const localResult = await chrome.storage.local.get(['license']);
+  const existingLicense = localResult.license || {};
+
+  // If trial was already used (either in sync or local storage), block it
+  const trialUsedInSync = syncResult.trialUsed === true;
+  const trialUsedInLocal = !!existingLicense.trialStarted;
+
+  if (trialUsedInSync || trialUsedInLocal) {
+    // If local is missing the trial record but sync has it, restore it to local
+    if (trialUsedInSync && !trialUsedInLocal) {
+      const trialStarted = syncResult.trialStarted || (Date.now() - 8 * 24 * 60 * 60 * 1000);
+      await chrome.storage.local.set({ license: { trialStarted, trialDays: 7 } });
+    }
+
+    const trialStarted = existingLicense.trialStarted || syncResult.trialStarted || 0;
+    const trialEnd = trialStarted + 7 * 24 * 60 * 60 * 1000;
+
     if (Date.now() >= trialEnd) {
-      // Trial was already used and expired
       showToast('⚠️ You have already used your free trial. Please upgrade to Premium for $10!');
       licenseStatus = { status: 'trialExpired', valid: false, trial: false, expired: true };
       showLicenseStatus();
       updateLicenseModal();
       return;
     } else {
-      // Trial is still active
       const daysLeft = Math.ceil((trialEnd - Date.now()) / (24 * 60 * 60 * 1000));
       showToast(`⏳ Your trial is already active! ${daysLeft} days remaining.`);
       licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft };
@@ -295,13 +339,14 @@ async function startTrial() {
       return;
     }
   }
-  
-  // Start new trial
-  const license = {
-    trialStarted: Date.now(),
-    trialDays: 7
-  };
+
+  // Start new trial — save to BOTH local AND sync storage
+  const trialStarted = Date.now();
+  const license = { trialStarted, trialDays: 7 };
   await chrome.storage.local.set({ license });
+  // Mark trial as used in sync storage so it persists across reinstalls
+  await chrome.storage.sync.set({ trialUsed: true, trialStarted });
+
   licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft: 7 };
   showLicenseStatus();
   showToast('🎉 7-day Premium trial started! Enjoy all features.');
@@ -1537,6 +1582,14 @@ function setupEventListeners() {
   
   document.getElementById('saveSearchFilter').addEventListener('click', saveSearchFilter);
   
+  // Google Drive History
+  document.getElementById('gdriveConnectBtn').addEventListener('click', gdriveConnect);
+  document.getElementById('gdriveExportNowBtn').addEventListener('click', gdriveExportNow);
+  document.getElementById('gdriveDisconnectBtn').addEventListener('click', gdriveDisconnect);
+  document.getElementById('gdriveAutoSync').addEventListener('change', gdriveToggleAutoSync);
+  document.getElementById('gdriveResetSheetBtn').addEventListener('click', gdriveResetSheet);
+  loadGdriveStatus();
+
   // Cloud Sync
   document.getElementById('cloudExportBtn').addEventListener('click', exportForCloudSync);
   document.getElementById('cloudImportBtn').addEventListener('click', () => {
@@ -1675,7 +1728,9 @@ async function exportForCloudSync() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tabtimer-sync-${new Date().toISOString().slice(0, 10)}.json`;
+    const syncDate = new Date();
+    const syncLocalDate = `${syncDate.getFullYear()}-${String(syncDate.getMonth()+1).padStart(2,'0')}-${String(syncDate.getDate()).padStart(2,'0')}`;
+    a.download = `tabtimer-sync-${syncLocalDate}.json`;
     a.click();
     URL.revokeObjectURL(url);
     
@@ -1982,6 +2037,19 @@ async function createSchedule() {
   const datetime = document.getElementById('newDatetime').value;
   const repeat = document.getElementById('newRepeat').value;
   const lockMinutes = parseInt(document.getElementById('newLockMinutes').value);
+  const expireTimeRaw = document.getElementById('newExpireTime').value;
+
+  // Parse expire time in local timezone
+  let expireTime = null;
+  if (expireTimeRaw) {
+    const ep = expireTimeRaw.split('T');
+    const ed = ep[0].split('-');
+    const et = (ep[1] || '23:59').split(':');
+    expireTime = new Date(
+      parseInt(ed[0]), parseInt(ed[1]) - 1, parseInt(ed[2]),
+      parseInt(et[0]) || 23, parseInt(et[1]) || 59, 0
+    ).toISOString();
+  }
   
   // Get auto-close settings
   const autoClose = document.getElementById('newAutoClose').checked;
@@ -1989,6 +2057,7 @@ async function createSchedule() {
   
   // Get sound notification setting
   const playSound = document.getElementById('newPlaySound').checked;
+  const takeFocus = document.getElementById('newTakeFocus').checked;
   const notesEl = document.getElementById('newNotes');
   const notes = (notesEl && isPremiumFeature()) ? notesEl.value.trim() : '';
   
@@ -2074,7 +2143,9 @@ async function createSchedule() {
       hourlyInterval,
       customDays,
       specificDates,
-      notes
+      notes,
+      expireTime,
+      takeFocus: takeFocus
     }
   });
   
@@ -2086,6 +2157,8 @@ async function createSchedule() {
     // Clear form
     document.getElementById('newUrl').value = '';
     document.getElementById('newName').value = '';
+    document.getElementById('newExpireTime').value = '';
+    document.getElementById('newTakeFocus').checked = false;
     const newNotesEl = document.getElementById('newNotes'); if (newNotesEl) newNotesEl.value = '';
   } else {
     showToast('Failed to create schedule');
@@ -2240,6 +2313,17 @@ function openEditModal(id) {
   document.getElementById('editId').value = id;
   document.getElementById('editUrl').value = lock.url;
   document.getElementById('editName').value = lock.name || '';
+  // Populate expire time if set
+  const editExpireEl = document.getElementById('editExpireTime');
+  if (editExpireEl) {
+    if (lock.expireTime) {
+      const et = new Date(lock.expireTime);
+      const pad = n => String(n).padStart(2, '0');
+      editExpireEl.value = `${et.getFullYear()}-${pad(et.getMonth()+1)}-${pad(et.getDate())}T${pad(et.getHours())}:${pad(et.getMinutes())}`;
+    } else {
+      editExpireEl.value = '';
+    }
+  }
   document.getElementById('editCategory').value = lock.category || '';
   document.getElementById('editFolder').value = lock.folder || 'default';
   // Convert unlockTime to local datetime for the edit field (toISOString gives UTC which shows wrong time)
@@ -2311,6 +2395,9 @@ function openEditModal(id) {
   
   // Set play sound
   document.getElementById('editPlaySound').checked = lock.playSound || false;
+
+  // Set take focus
+  document.getElementById('editTakeFocus').checked = lock.takeFocus || false;
   
   // Set notes (Premium)
   document.getElementById('editNotes').value = lock.notes || '';
@@ -2362,6 +2449,7 @@ async function saveEdit() {
   const repeatType = document.getElementById('editRepeatType').value;
   const autoClose = document.getElementById('editAutoClose').checked;
   const playSound = document.getElementById('editPlaySound').checked;
+  const takeFocus = document.getElementById('editTakeFocus').checked;
   const notes = document.getElementById('editNotes').value;
   
   // Get custom repeat values
@@ -2416,7 +2504,19 @@ async function saveEdit() {
         autoClose,
         autoCloseMinutes: autoClose ? parseInt(document.getElementById('editAutoCloseMinutes').value) : 0,
         playSound,
-        notes
+        notes,
+        expireTime: (() => {
+          const raw = document.getElementById('editExpireTime')?.value;
+          if (!raw) return null;
+          const ep = raw.split('T');
+          const ed = ep[0].split('-');
+          const et = (ep[1] || '23:59').split(':');
+          return new Date(
+            parseInt(ed[0]), parseInt(ed[1]) - 1, parseInt(ed[2]),
+            parseInt(et[0]) || 23, parseInt(et[1]) || 59, 0
+          ).toISOString();
+        })(),
+        takeFocus: takeFocus
       }
     });
     
@@ -2926,7 +3026,8 @@ async function createImportSchedule(parsed, unlockTime, state) {
       unlockTime: unlockTime.toISOString(),
       recurring: state.recurring,
       repeatType: state.repeatType,
-      playSound: state.playSound || false
+      playSound: state.playSound || false,
+      expireTime: parsed.expireTime || null
     }
   });
 }
@@ -3025,10 +3126,36 @@ function finishBulkImport() {
 
 // Parse a line like "1/31 Flashlight https://example.com" into {name, url}
 function parseImportLine(line) {
+  // Support URL | expire_time format e.g. https://example.com | 2026-03-31 09:00
+  let expireTime = null;
+  if (line.includes('|')) {
+    const parts = line.split('|');
+    line = parts[0].trim();
+    const expirePart = parts[1].trim();
+    // Try to parse as datetime
+    if (expirePart) {
+      const expDate = new Date(expirePart);
+      if (!isNaN(expDate.getTime())) {
+        expireTime = expDate.toISOString();
+      } else {
+        // Try YYYY-MM-DD HH:MM format
+        const dtMatch = expirePart.match(/(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
+        if (dtMatch) {
+          const ep = dtMatch[1].split('-');
+          const et = dtMatch[2].split(':');
+          expireTime = new Date(
+            parseInt(ep[0]), parseInt(ep[1]) - 1, parseInt(ep[2]),
+            parseInt(et[0]), parseInt(et[1]), 0
+          ).toISOString();
+        }
+      }
+    }
+  }
+
   // Find the URL in the line (starts with http:// or https://)
   const urlMatch = line.match(/(https?:\/\/[^\s]+)/);
   if (!urlMatch) {
-    return { url: null, name: '' };
+    return { url: null, name: '', expireTime: null };
   }
   
   const url = urlMatch[1];
@@ -3036,7 +3163,7 @@ function parseImportLine(line) {
   
   if (!beforeUrl) {
     // Just a URL, no name
-    return { url, name: '' };
+    return { url, name: '', expireTime };
   }
   
   // Try to parse date from the beginning
@@ -3089,7 +3216,7 @@ function parseImportLine(line) {
     name = remainingText;
   }
   
-  return { url, name };
+  return { url, name, expireTime };
 }
 
 async function setupBookmarkImport() {
@@ -3181,9 +3308,15 @@ async function bulkImportBookmarks() {
   let created = 0;
   for (let i = 0; i < urls.length; i++) {
     const b = urls[i];
-    // Stagger in milliseconds (staggerSeconds * 1000)
     const unlockTime = new Date(startTime.getTime() + (stagger ? i * staggerSeconds * 1000 : 0));
-    
+
+    // Check if bookmark name has a date — if so, ask for expire time
+    let expireTime = null;
+    const dateMatch = (b.title || '').match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      expireTime = await showBmExpireModal(b.title, b.url, dateMatch[1]);
+    }
+
     await chrome.runtime.sendMessage({
       action: 'createLock',
       lock: {
@@ -3195,7 +3328,8 @@ async function bulkImportBookmarks() {
         repeatType: repeatType,
         lockMinutes: lockMinutes,
         color: color,
-        playSound: playSound
+        playSound: playSound,
+        expireTime: expireTime
       }
     });
     created++;
@@ -3204,6 +3338,62 @@ async function bulkImportBookmarks() {
   showToast(`Imported ${created} bookmarks`);
   await refreshData();
   switchView('schedules');
+}
+
+function showBmExpireModal(title, url, dateStr) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('bmExpireModal');
+    document.getElementById('bmExpireBookmarkName').textContent = title;
+    document.getElementById('bmExpireBookmarkUrl').textContent = url;
+
+    // Format the date nicely
+    const parts = dateStr.split('-');
+    const expDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    document.getElementById('bmExpireDate').textContent = expDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    // Pre-fill the datetime input with the expiration date at 11:59 PM
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('bmExpireTimeInput').value = `${dateStr}T23:59`;
+
+    modal.style.display = 'flex';
+
+    const confirmBtn = document.getElementById('bmExpireConfirmBtn');
+    const skipBtn = document.getElementById('bmExpireSkipBtn');
+    const closeBtn = document.getElementById('bmExpireModalClose');
+
+    function cleanup() {
+      modal.style.display = 'none';
+      confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+      skipBtn.replaceWith(skipBtn.cloneNode(true));
+      closeBtn.replaceWith(closeBtn.cloneNode(true));
+    }
+
+    document.getElementById('bmExpireConfirmBtn').addEventListener('click', () => {
+      const raw = document.getElementById('bmExpireTimeInput').value;
+      let expireTime = null;
+      if (raw) {
+        const ep = raw.split('T');
+        const ed = ep[0].split('-');
+        const et = (ep[1] || '23:59').split(':');
+        expireTime = new Date(
+          parseInt(ed[0]), parseInt(ed[1]) - 1, parseInt(ed[2]),
+          parseInt(et[0]) || 23, parseInt(et[1]) || 59, 0
+        ).toISOString();
+      }
+      cleanup();
+      resolve(expireTime);
+    });
+
+    document.getElementById('bmExpireSkipBtn').addEventListener('click', () => {
+      cleanup();
+      resolve(null);
+    });
+
+    document.getElementById('bmExpireModalClose').addEventListener('click', () => {
+      cleanup();
+      resolve(null);
+    });
+  });
 }
 
 // ============================================
@@ -3218,7 +3408,9 @@ async function exportAllData() {
   
   const a = document.createElement('a');
   a.href = url;
-  a.download = `tabtimer-backup-${new Date().toISOString().split('T')[0]}.json`;
+  const backupDate = new Date();
+  const backupLocalDate = `${backupDate.getFullYear()}-${String(backupDate.getMonth()+1).padStart(2,'0')}-${String(backupDate.getDate()).padStart(2,'0')}`;
+  a.download = `tabtimer-backup-${backupLocalDate}.json`;
   a.click();
   
   URL.revokeObjectURL(url);
@@ -3289,11 +3481,18 @@ async function saveSettings() {
 }
 
 function testNotification() {
-  chrome.notifications.create({
+  const id = 'tabtimer-test-' + Date.now();
+  chrome.notifications.create(id, {
     type: 'basic',
     iconUrl: 'icons/icon128.png',
-    title: 'TabTimer Test',
-    message: 'This is a test notification!'
+    title: '⏰ TabTimer Test',
+    message: 'Notifications are working correctly!'
+  }, (createdId) => {
+    if (chrome.runtime.lastError) {
+      showToast('❌ Notification failed: ' + chrome.runtime.lastError.message);
+    } else {
+      showToast('✅ Test notification sent!');
+    }
   });
 }
 
@@ -3514,7 +3713,9 @@ async function downloadBackup(index) {
   
   const a = document.createElement('a');
   a.href = url;
-  a.download = `tabtimer-backup-${backup.timestamp.split('T')[0]}.json`;
+  const backupTs = new Date(backup.timestamp);
+  const backupTsLocal = `${backupTs.getFullYear()}-${String(backupTs.getMonth()+1).padStart(2,'0')}-${String(backupTs.getDate()).padStart(2,'0')}`;
+  a.download = `tabtimer-backup-${backupTsLocal}.json`;
   a.click();
   
   URL.revokeObjectURL(url);
@@ -3897,6 +4098,19 @@ async function importCsvData() {
   // Get the "Apply to All" fields
   const expirationDate = document.getElementById('csvExpirationDate').value; // YYYY-MM-DD or empty
   const namePrefix = document.getElementById('csvNamePrefix').value.trim();
+
+  // Parse bulk expire time in local timezone
+  const csvExpireTimeRaw = document.getElementById('csvExpireTime')?.value;
+  let csvExpireTime = null;
+  if (csvExpireTimeRaw) {
+    const ep = csvExpireTimeRaw.split('T');
+    const ed = ep[0].split('-');
+    const et = (ep[1] || '23:59').split(':');
+    csvExpireTime = new Date(
+      parseInt(ed[0]), parseInt(ed[1]) - 1, parseInt(ed[2]),
+      parseInt(et[0]) || 23, parseInt(et[1]) || 59, 0
+    ).toISOString();
+  }
   
   let imported = 0;
   let currentTime = defaultStartTime.getTime();
@@ -3950,7 +4164,8 @@ async function importCsvData() {
           repeatType: repeatType,
           lockMinutes: 0,
           playSound: playSound,
-          notes: item.notes || ''
+          notes: item.notes || '',
+          expireTime: csvExpireTime
         }
       });
       imported++;
@@ -3969,6 +4184,8 @@ async function importCsvData() {
   document.getElementById('csvImportBtn').disabled = true;
   document.getElementById('csvExpirationDate').value = '';
   document.getElementById('csvNamePrefix').value = '';
+  const csvExpireEl = document.getElementById('csvExpireTime');
+  if (csvExpireEl) csvExpireEl.value = '';
   
   await refreshData();
 }
@@ -3990,4 +4207,515 @@ function downloadCsvTemplate() {
   URL.revokeObjectURL(url);
   
   showToast('Template downloaded!');
+}
+
+// ============================================
+// GOOGLE DRIVE HISTORY
+// ============================================
+
+async function loadGdriveStatus() {
+  const result = await chrome.storage.local.get([
+    'gdriveConnected', 'gdriveSheetId', 'gdriveSheetUrl',
+    'gdriveLastSync', 'gdriveAutoSync'
+  ]);
+
+  const connectBtn = document.getElementById('gdriveConnectBtn');
+  const exportBtn = document.getElementById('gdriveExportNowBtn');
+  const disconnectBtn = document.getElementById('gdriveDisconnectBtn');
+  const statusIcon = document.getElementById('gdriveStatusIcon');
+  const statusText = document.getElementById('gdriveStatusText');
+  const lastSyncEl = document.getElementById('gdriveLastSync');
+  const sheetLinkDiv = document.getElementById('gdriveSheetLink');
+  const sheetUrlEl = document.getElementById('gdriveSheetUrl');
+  const autoSyncCheck = document.getElementById('gdriveAutoSync');
+
+  if (result.gdriveConnected && result.gdriveSheetId) {
+    // Connected state
+    statusIcon.textContent = '✅';
+    statusText.textContent = 'Connected to Google Drive';
+    connectBtn.textContent = '🔄 Reconnect';
+    exportBtn.disabled = false;
+    disconnectBtn.style.display = 'inline-block';
+    document.getElementById('gdriveResetSheetBtn').style.display = 'inline-block';
+    // Hide setup instructions once connected
+    const setupInstructions = document.getElementById('gdriveSetupInstructions');
+    if (setupInstructions) setupInstructions.style.display = 'none';
+
+    if (result.gdriveLastSync) {
+      lastSyncEl.textContent = `Last synced: ${new Date(result.gdriveLastSync).toLocaleString()}`;
+    }
+
+    if (result.gdriveSheetUrl) {
+      sheetLinkDiv.style.display = 'block';
+      sheetUrlEl.href = result.gdriveSheetUrl;
+    }
+  } else {
+    // Not connected state
+    statusIcon.textContent = '📊';
+    statusText.textContent = 'Not connected to Google Drive';
+    exportBtn.disabled = true;
+    disconnectBtn.style.display = 'none';
+    document.getElementById('gdriveResetSheetBtn').style.display = 'none';
+    sheetLinkDiv.style.display = 'none';
+    lastSyncEl.textContent = '';
+    // Show setup instructions when not connected
+    const setupInstructions = document.getElementById('gdriveSetupInstructions');
+    if (setupInstructions) setupInstructions.style.display = 'block';
+  }
+
+  // Set auto-sync checkbox (PRO only)
+  autoSyncCheck.checked = result.gdriveAutoSync || false;
+}
+
+async function gdriveConnect() {
+  const connectBtn = document.getElementById('gdriveConnectBtn');
+  connectBtn.disabled = true;
+  connectBtn.textContent = '⏳ Connecting...';
+
+  try {
+    // Request OAuth token interactively
+    const token = await new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({ interactive: true }, (token) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve(token);
+        }
+      });
+    });
+
+    // Store token temporarily and create/find the sheet
+    await chrome.storage.local.set({ gdriveToken: token });
+
+    const result = await gdriveCreateOrFindSheet(token);
+
+    if (result.success) {
+      await chrome.storage.local.set({
+        gdriveConnected: true,
+        gdriveSheetId: result.sheetId,
+        gdriveSheetUrl: result.sheetUrl
+      });
+
+      showToast('✅ Connected to Google Drive! Sheet created.');
+      loadGdriveStatus();
+
+      // Do an initial export right away
+      await gdriveExportNow();
+    } else {
+      throw new Error(result.error || 'Failed to create sheet');
+    }
+  } catch (err) {
+    showToast('❌ Connection failed: ' + err.message);
+    console.error('Google Drive connect error:', err);
+  } finally {
+    connectBtn.disabled = false;
+    connectBtn.textContent = '🔗 Connect Google Account';
+  }
+}
+
+async function gdriveResetSheet() {
+  if (!confirm('This will delete your existing TabTimer History sheet in Google Drive and create a brand new one. All your history data will be re-exported. Continue?')) return;
+
+  const resetBtn = document.getElementById('gdriveResetSheetBtn');
+  resetBtn.disabled = true;
+  resetBtn.textContent = '⏳ Resetting...';
+
+  try {
+    const token = await gdriveGetToken();
+    const stored = await chrome.storage.local.get(['gdriveSheetId']);
+    const oldSheetId = stored.gdriveSheetId;
+
+    // Delete the old sheet from Google Drive
+    if (oldSheetId) {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${oldSheetId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('TabTimer: Old sheet deleted from Google Drive');
+    }
+
+    // Clear stored sheet info so a fresh one gets created
+    await chrome.storage.local.remove(['gdriveSheetId', 'gdriveSheetUrl', 'gdriveHistoryIds', 'gdriveLastSync']);
+
+    // Create a brand new sheet
+    const result = await gdriveCreateOrFindSheet(token);
+    if (result.success) {
+      await chrome.storage.local.set({
+        gdriveConnected: true,
+        gdriveSheetId: result.sheetId,
+        gdriveSheetUrl: result.sheetUrl
+      });
+
+      showToast('✅ Sheet recreated! Exporting your data now...');
+      loadGdriveStatus();
+
+      // Re-export all data to the new sheet
+      await gdriveExportNow();
+    } else {
+      throw new Error(result.error || 'Failed to create new sheet');
+    }
+  } catch (err) {
+    showToast('❌ Reset failed: ' + err.message);
+    console.error('Reset sheet error:', err);
+  } finally {
+    resetBtn.disabled = false;
+    resetBtn.textContent = '🗑️ Reset & Recreate Sheet';
+  }
+}
+
+async function gdriveDisconnect() {
+  if (!confirm('Disconnect from Google Drive? Your existing sheet will remain in Drive, but TabTimer will stop syncing to it.')) return;
+
+  // Revoke the token
+  const result = await chrome.storage.local.get(['gdriveToken']);
+  if (result.gdriveToken) {
+    chrome.identity.removeCachedAuthToken({ token: result.gdriveToken }, () => {});
+  }
+
+  await chrome.storage.local.remove([
+    'gdriveConnected', 'gdriveSheetId', 'gdriveSheetUrl',
+    'gdriveToken', 'gdriveLastSync', 'gdriveAutoSync',
+    'gdriveHistoryIds'
+  ]);
+
+  showToast('🔌 Disconnected from Google Drive');
+  loadGdriveStatus();
+}
+
+async function gdriveToggleAutoSync(e) {
+  const enabled = e.target.checked;
+
+  // Use the global licenseStatus object which is already correctly loaded
+  const isPro = licenseStatus.status === 'premium' || licenseStatus.status === 'trial';
+
+  if (enabled && !isPro) {
+    e.target.checked = false;
+    showToast('⭐ Auto-sync to Google Drive is a PRO feature. Upgrade to enable it!');
+    return;
+  }
+
+  await chrome.storage.local.set({ gdriveAutoSync: enabled });
+
+  if (enabled) {
+    // Set up daily alarm
+    chrome.alarms.create('gdrive-daily-sync', { periodInMinutes: 1440 });
+    showToast('✅ Auto-sync enabled — your sheet will update daily');
+  } else {
+    chrome.alarms.clear('gdrive-daily-sync');
+    showToast('Auto-sync disabled');
+  }
+}
+
+async function gdriveGetToken() {
+  // Try cached token first, then get a new one non-interactively
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: false }, (token) => {
+      if (chrome.runtime.lastError || !token) {
+        // Need interactive auth
+        chrome.identity.getAuthToken({ interactive: true }, (token2) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(token2);
+          }
+        });
+      } else {
+        resolve(token);
+      }
+    });
+  });
+}
+
+async function gdriveCreateOrFindSheet(token) {
+  try {
+    // Search for existing TabTimer History sheet
+    const searchResp = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name%3D'TabTimer History' and mimeType%3D'application/vnd.google-apps.spreadsheet' and trashed%3Dfalse&fields=files(id,webViewLink)`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const searchData = await searchResp.json();
+
+    if (searchData.files && searchData.files.length > 0) {
+      // Found existing sheet
+      const existing = searchData.files[0];
+      return { success: true, sheetId: existing.id, sheetUrl: existing.webViewLink };
+    }
+
+    // Create new spreadsheet
+    const createResp = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        properties: { title: 'TabTimer History' },
+        sheets: [
+          {
+            properties: { sheetId: 0, title: 'History', index: 0 },
+            data: [{
+              startRow: 0, startColumn: 0,
+              rowData: [{
+                values: [
+                  'Name', 'URL', 'Category', 'Repeat Type', 'Schedule Time',
+                  'Expiration Date', 'Expire Time', 'Open Count', 'Date Added',
+                  'Last Opened', 'Status', 'Notes'
+                ].map(v => ({
+                  userEnteredValue: { stringValue: v },
+                  userEnteredFormat: {
+                    backgroundColor: { red: 0.78, green: 0.85, blue: 0.95 },
+                    textFormat: { bold: true, foregroundColor: { red: 0.1, green: 0.1, blue: 0.2 } }
+                  }
+                }))
+              }]
+            }]
+          },
+          {
+            properties: { sheetId: 1, title: 'Active Schedules', index: 1 },
+            data: [{
+              startRow: 0, startColumn: 0,
+              rowData: [{
+                values: [
+                  'Name', 'URL', 'Category', 'Repeat Type', 'Schedule Time',
+                  'Expiration Date', 'Expire Time', 'Open Count', 'Date Added',
+                  'Last Opened', 'Status', 'Notes'
+                ].map(v => ({
+                  userEnteredValue: { stringValue: v },
+                  userEnteredFormat: {
+                    backgroundColor: { red: 0.78, green: 0.85, blue: 0.95 },
+                    textFormat: { bold: true, foregroundColor: { red: 0.1, green: 0.1, blue: 0.2 } }
+                  }
+                }))
+              }]
+            }]
+          }
+        ]
+      })
+    });
+
+    const createData = await createResp.json();
+    if (createData.spreadsheetId) {
+      const newSheetId = createData.spreadsheetId;
+
+      // Format the new sheet — freeze header rows only (columns auto-sized after data export)
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}:batchUpdate`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          requests: [
+            // Freeze the header row on History tab
+            {
+              updateSheetProperties: {
+                properties: { sheetId: 0, gridProperties: { frozenRowCount: 1, frozenColumnCount: 1 } },
+                fields: 'gridProperties.frozenRowCount,gridProperties.frozenColumnCount'
+              }
+            },
+            // Freeze the header row on Active Schedules tab
+            {
+              updateSheetProperties: {
+                properties: { sheetId: 1, gridProperties: { frozenRowCount: 1, frozenColumnCount: 1 } },
+                fields: 'gridProperties.frozenRowCount,gridProperties.frozenColumnCount'
+              }
+            }
+          ]
+        })
+      });
+
+      return {
+        success: true,
+        sheetId: newSheetId,
+        sheetUrl: createData.spreadsheetUrl
+      };
+    }
+    return { success: false, error: 'Failed to create spreadsheet: ' + JSON.stringify(createData) };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+function formatLockForSheet(lock) {
+  const repeatLabels = {
+    'daily': 'Daily', 'weekly': 'Weekly', 'monthly': 'Monthly',
+    'once': 'Once', 'yearly': 'Yearly', 'weekdays': 'Weekdays (Mon-Fri)',
+    'weekends': 'Weekends (Sat-Sun)', 'mon-sat': 'Mon-Sat',
+    'biweekly': 'Every 2 Weeks', 'triweekly': 'Every 3 Weeks',
+    'bimonthly': 'Every 2 Months', 'quarterly': 'Quarterly',
+    'semiannual': 'Every 6 Months', 'leap-year': 'Leap Year',
+    'hourly': `Every ${lock.hourlyInterval || 1} Hours`,
+    'minutes': `Every ${lock.minuteInterval || 10} Minutes`,
+    'custom-days': `Every ${lock.customDays || 2} Days`,
+    'specific-dates': 'Specific Dates'
+  };
+
+  const scheduleTime = lock.unlockTime
+    ? new Date(lock.unlockTime).toLocaleString()
+    : '';
+  const dateAdded = lock.lockedAt
+    ? new Date(lock.lockedAt).toLocaleString()
+    : '';
+  const lastOpened = lock.lastOpened
+    ? new Date(lock.lastOpened).toLocaleString()
+    : (lock.openCount > 0 ? 'Yes' : 'Never');
+  const status = lock.expired ? 'Expired' : (lock.active === false ? 'Paused' : 'Active');
+
+  return [
+    lock.name || '',
+    lock.url || '',
+    lock.category || '',
+    repeatLabels[lock.repeatType] || lock.repeatType || '',
+    scheduleTime,
+    lock.expirationDate ? new Date(lock.expirationDate).toLocaleDateString() : '',
+    lock.expireTime ? new Date(lock.expireTime).toLocaleString() : '',
+    (lock.openCount || 0).toString(),
+    dateAdded,
+    lastOpened,
+    status,
+    lock.notes || ''
+  ];
+}
+
+async function gdriveExportNow() {
+  const exportBtn = document.getElementById('gdriveExportNowBtn');
+  exportBtn.disabled = true;
+  exportBtn.textContent = '⏳ Exporting...';
+
+  try {
+    const token = await gdriveGetToken();
+    const stored = await chrome.storage.local.get([
+      'locks', 'gdriveSheetId', 'gdriveHistoryIds'
+    ]);
+
+    const sheetId = stored.gdriveSheetId;
+    if (!sheetId) {
+      showToast('❌ No sheet connected. Please connect first.');
+      return;
+    }
+
+    const locks = stored.locks || [];
+    // Track IDs we've already written to history so we don't duplicate
+    const historyIds = new Set(stored.gdriveHistoryIds || []);
+
+    // ---- Update HISTORY tab ----
+    // Only append locks not yet in history
+    const newLocks = locks.filter(l => !historyIds.has(l.id));
+
+    if (newLocks.length > 0) {
+      const newRows = newLocks.map(l => ({
+        values: formatLockForSheet(l).map(v => ({ userEnteredValue: { stringValue: v } }))
+      }));
+
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            values: newLocks.map(l => formatLockForSheet(l))
+          })
+        }
+      );
+
+      // Save updated history IDs
+      const allHistoryIds = [...historyIds, ...newLocks.map(l => l.id)];
+      await chrome.storage.local.set({ gdriveHistoryIds: allHistoryIds });
+    }
+
+    // ---- Update STATUS of expired schedules in History tab ----
+    // Get all rows from History to find any that need status update
+    const historyResp = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const historyData = await historyResp.json();
+    const historyRows = historyData.values || [];
+
+    // Build a set of active lock URLs+names for quick lookup
+    const activeLockKeys = new Set(locks.map(l => `${l.url}||${l.name}`));
+
+    // Find rows that are in History but no longer in active locks → mark Expired
+    const batchUpdates = [];
+    historyRows.forEach((row, idx) => {
+      const rowUrl = row[1] || '';
+      const rowName = row[0] || '';
+      const rowStatus = row[10] || ''; // Status is column 11 (index 10): Name,URL,Cat,Repeat,SchedTime,ExpDate,ExpireTime,OpenCount,DateAdded,LastOpened,Status,Notes
+      const key = `${rowUrl}||${rowName}`;
+
+      if (!activeLockKeys.has(key) && rowStatus !== 'Expired') {
+        // Row index in sheet is idx + 2 (1-based + header row)
+        batchUpdates.push({
+          range: `History!L${idx + 2}`,
+          values: [['Expired']]
+        });
+      }
+    });
+
+    if (batchUpdates.length > 0) {
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchUpdate`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            valueInputOption: 'RAW',
+            data: batchUpdates
+          })
+        }
+      );
+    }
+
+    // ---- Refresh ACTIVE SCHEDULES tab (full replace) ----
+    // Clear existing data first (keep header)
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Active Schedules!A2:L`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values: locks.length > 0 ? locks.map(l => formatLockForSheet(l)) : [[]] })
+      }
+    );
+
+    // Save last sync time
+    const now = new Date().toISOString();
+    await chrome.storage.local.set({ gdriveLastSync: now });
+
+    // Auto-resize columns now that data is in the sheet
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [
+          // Auto-resize all columns on History tab
+          { autoResizeDimensions: { dimensions: { sheetId: 0, dimension: 'COLUMNS', startIndex: 0, endIndex: 12 } } },
+          // Auto-resize all columns on Active Schedules tab
+          { autoResizeDimensions: { dimensions: { sheetId: 1, dimension: 'COLUMNS', startIndex: 0, endIndex: 12 } } },
+          // Cap URL column to 250px on History tab
+          { updateDimensionProperties: { range: { sheetId: 0, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 }, properties: { pixelSize: 250 }, fields: 'pixelSize' } },
+          // Cap URL column to 250px on Active Schedules tab
+          { updateDimensionProperties: { range: { sheetId: 1, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 }, properties: { pixelSize: 250 }, fields: 'pixelSize' } }
+        ]
+      })
+    });
+
+    showToast(`✅ Exported to Google Drive! ${newLocks.length} new schedules added to History.`);
+    loadGdriveStatus();
+
+  } catch (err) {
+    showToast('❌ Export failed: ' + err.message);
+    console.error('Google Drive export error:', err);
+  } finally {
+    exportBtn.disabled = false;
+    exportBtn.textContent = '⬆️ Export to Drive Now';
+  }
 }

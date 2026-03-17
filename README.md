@@ -4,7 +4,7 @@
 
 TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, and anyone who needs websites to open automatically on a schedule. No more missed entries. No more forgetting.
 
-[![Version](https://img.shields.io/badge/version-2.8.20-orange)](https://github.com/yourusername/tabtimer)
+[![Version](https://img.shields.io/badge/version-2.8.21-orange)](https://github.com/yourusername/tabtimer)
 [![License](https://img.shields.io/badge/license-Proprietary-blue)]()
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Published-green)](https://chrome.google.com/webstore)
 
@@ -22,6 +22,7 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 - Backup and restore all your schedules
 - Manage all schedules from one dashboard
 - Category filters (Daily, Weekly, Monthly, Once, Other)
+- **Google Drive History** — connect your Google account and manually export your full schedule history to a Google Sheet at any time (free)
 
 ### PRO Features — $10 Lifetime License
 - **Weekdays (Mon–Fri)** repeat
@@ -39,6 +40,7 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 - Sound notification when a tab opens
 - Advance reminder notification (seconds before opening)
 - Never Lock mode — opens tab without blocking your browsing
+- **Auto-sync daily to Google Drive** — your History Sheet updates automatically every day
 - One-time payment, no subscription ever
 
 ---
@@ -59,6 +61,29 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 3. Enable **Developer Mode** (top right toggle)
 4. Click **Load unpacked** and select the TabTimer folder
 5. The TabTimer icon will appear in your Chrome toolbar
+
+---
+
+## Google Drive History
+
+TabTimer can export your schedule history to a Google Sheet stored in your own Google Drive. This gives you a permanent record of every sweepstakes or website you have ever scheduled — including ones that have expired or been deleted — so you can look back months later and see exactly how many times you entered.
+
+### How it works
+1. Go to **Backup/Sync** in the sidebar and click **Connect Google Account**
+2. Sign in with your Google account — TabTimer will create a sheet called **TabTimer History** in your Drive
+3. Click **Export to Drive Now** any time to update the sheet manually (free)
+4. PRO users can enable **Auto-sync daily** to have the sheet update automatically every day
+
+### What gets recorded
+The sheet has two tabs:
+- **History** — a permanent log of every schedule you have ever created; expired or deleted schedules are marked "Expired" rather than removed, so your full history is always preserved
+- **Active Schedules** — a live snapshot of everything currently scheduled in TabTimer
+
+### Columns recorded
+Name, URL, Category, Repeat Type, Schedule Time, Expiration Date, Open Count, Notes, Date Added, Last Opened, Status
+
+### Privacy
+Your data goes directly from TabTimer to your own personal Google Drive. TabTimer does not send your data to any third-party server. Only you have access to the sheet.
 
 ---
 
@@ -117,6 +142,8 @@ Purchase a PRO license at [tabtimerpro.com](https://tabtimerpro.com) or from the
 ## Privacy Policy
 
 TabTimer does not collect, transmit, or store any personal data on external servers. All schedule data, settings, and license information are stored locally in your browser using `chrome.storage.local`. No analytics, no tracking, no ads.
+
+**Google Drive History (optional feature):** If you choose to connect your Google account and use the Google Drive History feature, your schedule data is sent directly from your browser to your own personal Google Drive using Google's official API. TabTimer does not have access to your Google account beyond creating and updating the single TabTimer History spreadsheet. You can disconnect your Google account at any time from the Backup/Sync section. No schedule data is ever sent to TabTimer's servers — it goes directly to your own Google Drive and nowhere else.
 
 ---
 

@@ -628,6 +628,15 @@ async function showLockDialog(url, title) {
             💡 Names starting with YYYY-MM-DD will auto-delete after that date
           </div>
         </div>
+
+        <!-- Expire Time Field -->
+        <div class="tabtimer-field">
+          <label style="font-size:13px;font-weight:600;">⏱️ Expire Time <span style="font-weight:400;color:#64748b;font-size:11px;">(optional — silently deleted at this exact date &amp; time)</span></label>
+          <input type="datetime-local" id="tabtimer-expire-time" step="1" style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;box-sizing:border-box;margin-top:6px;">
+          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+            Leave blank if this schedule does not have a specific expiration time
+          </div>
+        </div>
         
         <!-- Open At with Smart Suggestions -->
         <div class="tabtimer-field">
@@ -1185,6 +1194,19 @@ function setupDialogEvents(overlay, url, isDark, existingLocks, settings) {
     const autoCloseMinutesEl = overlay.querySelector('#tabtimer-auto-close-minutes');
     const autoClose = autoCloseEl ? autoCloseEl.checked : false;
     const autoCloseMinutes = (autoClose && autoCloseMinutesEl) ? (parseInt(autoCloseMinutesEl.value) || 2) : 0;
+
+    // Parse expire time in local timezone
+    const expireTimeEl = overlay.querySelector('#tabtimer-expire-time');
+    let expireTime = null;
+    if (expireTimeEl && expireTimeEl.value) {
+      const ep = expireTimeEl.value.split('T');
+      const ed = ep[0].split('-');
+      const et = (ep[1] || '23:59').split(':');
+      expireTime = new Date(
+        parseInt(ed[0]), parseInt(ed[1]) - 1, parseInt(ed[2]),
+        parseInt(et[0]) || 23, parseInt(et[1]) || 59, 0
+      ).toISOString();
+    }
     
     // Gather sub-field values for special repeat types
     // Read directly from the visible inputs (not hidden fields) to always get current value
@@ -1214,7 +1236,9 @@ function setupDialogEvents(overlay, url, isDark, existingLocks, settings) {
         autoClose: autoClose,
         autoCloseMinutes: autoCloseMinutes,
         playSound: playSound,
-        notes: notes
+        notes: notes,
+        expireTime: expireTime,
+        takeFocus: false
       }
     });
     
