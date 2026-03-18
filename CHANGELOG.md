@@ -2,6 +2,26 @@
 
 ---
 
+## v2.8.24 — March 2026
+
+### New Features
+- **Import from Drive (PRO)** — new button in Backup/Sync reads your TabTimer History sheet from Google Drive and imports all Active schedules back into TabTimer; skips expired rows and deduplicates both against existing schedules and within the import list itself; shows a preview modal with count of what will be imported before confirming
+
+### Improvements
+- **Import reads from History tab** — import correctly reads the permanent History tab (not Active Schedules tab) so it works even on a fresh install with no schedules yet
+- **Within-batch deduplication** — if the same URL appears multiple times in the History sheet, only the first occurrence is imported
+
+---
+
+## v2.8.23 — March 2026
+
+### Improvements
+- **Extension ID locked** — manifest now includes the public key so Load Unpacked always uses the same extension ID (`doldjjkenhkdgibacbenanejmfjoifoj`) as the Chrome Web Store version; only one OAuth Client ID needed forever
+- **License key persists across reinstalls** — your PRO license key is now saved to `chrome.storage.sync` (tied to your Google account) so it is automatically restored after uninstalling and reinstalling — you never have to re-enter your license key again
+- **Trial abuse prevention improved** — trial status also stored in sync storage; users who have used their free trial cannot get another one by reinstalling
+
+---
+
 ## v2.8.22 — March 2026
 
 ### Bug Fixes

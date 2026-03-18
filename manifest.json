@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabTimer",
-  "version": "2.8.22",
+  "version": "2.8.24",
   "description": "Smart Website Scheduler - Schedule websites to open automatically at specific times. Free forever with optional Premium features!",
   "permissions": [
     "storage",
@@ -88,5 +88,6 @@
         "<all_urls>"
       ]
     }
-  ]
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkW9VrQTgk79o9ov43X+iKC/my3mgy5G6+Y/CzdriK2bYGADa8BtnQzenoiUryHqTB8Y9cuH9acdvzRQ/pphOtoIKcsUcoD9gD53HtbtCHenNgEqy4Yj8zccW+Mq49pbTyry38RRwA3HJRGZAoCALf2ZAeZtwpZo6YGpG033U38AgHdITeT0DmtY3hnO4ioRi81IWhCpOtUJ7iLoj8BBujvVUqzbAw1FkXstHkpxmwf24MOXp5lNvdtNakONirbQrc1brcyvEI9LkgoqnN+eUCjx7/0ZgaSU+Kkhhv0KqZQ3+bhA1fwTBcq1P6lz40MmEha6/Z1SUVsSZFFY6ZvXyPwIDAQAB"
 }

@@ -258,30 +258,42 @@ async function checkLicense() {
   const result = await chrome.storage.local.get(['license']);
   const license = result.license || {};
   
-  // Check if premium license is activated
+  // Check if premium license is activated locally
   if (license.key && license.validated) {
     licenseStatus = { status: 'premium', valid: true, trial: false, expired: false };
     return;
   }
-  
-  // Check if trial has been started locally
-  if (license.trialStarted) {
-    const trialEnd = license.trialStarted + (license.trialDays || 7) * 24 * 60 * 60 * 1000;
-    if (Date.now() < trialEnd) {
-      const daysLeft = Math.ceil((trialEnd - Date.now()) / (24 * 60 * 60 * 1000));
-      licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft };
-      return;
-    } else {
-      licenseStatus = { status: 'trialExpired', valid: false, trial: false, expired: true };
+
+  // No local license — check sync storage to restore after reinstall
+  try {
+    const syncResult = await chrome.storage.sync.get(['licenseKey', 'trialUsed', 'trialStarted']);
+
+    // Restore license key from sync if present
+    if (syncResult.licenseKey) {
+      const restoredLicense = result.license || {};
+      restoredLicense.key = syncResult.licenseKey;
+      restoredLicense.validated = true;
+      restoredLicense.activatedAt = restoredLicense.activatedAt || Date.now();
+      await chrome.storage.local.set({ license: restoredLicense });
+      licenseStatus = { status: 'premium', valid: true, trial: false, expired: false };
       return;
     }
-  }
 
-  // No local trial — check sync storage to catch reinstall abuse
-  try {
-    const syncResult = await chrome.storage.sync.get(['trialUsed', 'trialStarted']);
+    // Check trial in local storage
+    if (license.trialStarted) {
+      const trialEnd = license.trialStarted + (license.trialDays || 7) * 24 * 60 * 60 * 1000;
+      if (Date.now() < trialEnd) {
+        const daysLeft = Math.ceil((trialEnd - Date.now()) / (24 * 60 * 60 * 1000));
+        licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft };
+        return;
+      } else {
+        licenseStatus = { status: 'trialExpired', valid: false, trial: false, expired: true };
+        return;
+      }
+    }
+
+    // Check trial in sync storage
     if (syncResult.trialUsed) {
-      // Trial was used before — restore to local and mark as expired
       const trialStarted = syncResult.trialStarted || (Date.now() - 8 * 24 * 60 * 60 * 1000);
       await chrome.storage.local.set({ license: { trialStarted, trialDays: 7 } });
       const trialEnd = trialStarted + 7 * 24 * 60 * 60 * 1000;
@@ -295,9 +307,21 @@ async function checkLicense() {
     }
   } catch(e) {
     // Sync storage unavailable — fall through to free
+    // Still check local trial
+    if (license.trialStarted) {
+      const trialEnd = license.trialStarted + (license.trialDays || 7) * 24 * 60 * 60 * 1000;
+      if (Date.now() < trialEnd) {
+        const daysLeft = Math.ceil((trialEnd - Date.now()) / (24 * 60 * 60 * 1000));
+        licenseStatus = { status: 'trial', valid: true, trial: true, expired: false, daysLeft };
+        return;
+      } else {
+        licenseStatus = { status: 'trialExpired', valid: false, trial: false, expired: true };
+        return;
+      }
+    }
   }
-  
-  // No trial started yet - free user
+
+  // No license, no trial
   licenseStatus = { status: 'free', valid: false, trial: false, expired: false };
 }
 
@@ -385,6 +409,12 @@ async function validateLicenseKey(key) {
     license.validated = true;
     license.activatedAt = Date.now();
     await chrome.storage.local.set({ license });
+    // Also save to sync storage so it persists across reinstalls
+    try {
+      await chrome.storage.sync.set({ licenseKey: k });
+    } catch(e) {
+      // Sync unavailable — local only is fine
+    }
     licenseStatus = { status: 'premium', valid: true, trial: false, expired: false };
     return { valid: true };
   }
@@ -1588,6 +1618,13 @@ function setupEventListeners() {
   document.getElementById('gdriveDisconnectBtn').addEventListener('click', gdriveDisconnect);
   document.getElementById('gdriveAutoSync').addEventListener('change', gdriveToggleAutoSync);
   document.getElementById('gdriveResetSheetBtn').addEventListener('click', gdriveResetSheet);
+  document.getElementById('gdriveImportFromDriveBtn').addEventListener('click', gdriveImportFromDrive);
+  document.getElementById('gdriveImportModalClose').addEventListener('click', () => {
+    document.getElementById('gdriveImportModal').style.display = 'none';
+  });
+  document.getElementById('gdriveImportCancelBtn').addEventListener('click', () => {
+    document.getElementById('gdriveImportModal').style.display = 'none';
+  });
   loadGdriveStatus();
 
   // Cloud Sync
@@ -4237,6 +4274,9 @@ async function loadGdriveStatus() {
     exportBtn.disabled = false;
     disconnectBtn.style.display = 'inline-block';
     document.getElementById('gdriveResetSheetBtn').style.display = 'inline-block';
+    // Enable import button for PRO users
+    const importBtn = document.getElementById('gdriveImportFromDriveBtn');
+    if (importBtn) importBtn.disabled = !isPremiumFeature();
     // Hide setup instructions once connected
     const setupInstructions = document.getElementById('gdriveSetupInstructions');
     if (setupInstructions) setupInstructions.style.display = 'none';
@@ -4256,6 +4296,8 @@ async function loadGdriveStatus() {
     exportBtn.disabled = true;
     disconnectBtn.style.display = 'none';
     document.getElementById('gdriveResetSheetBtn').style.display = 'none';
+    const importBtn = document.getElementById('gdriveImportFromDriveBtn');
+    if (importBtn) importBtn.disabled = true;
     sheetLinkDiv.style.display = 'none';
     lastSyncEl.textContent = '';
     // Show setup instructions when not connected
@@ -4360,6 +4402,195 @@ async function gdriveResetSheet() {
   } finally {
     resetBtn.disabled = false;
     resetBtn.textContent = '🗑️ Reset & Recreate Sheet';
+  }
+}
+
+async function gdriveImportFromDrive() {
+  if (!isPremiumFeature()) {
+    showPremiumPrompt();
+    return;
+  }
+
+  const btn = document.getElementById('gdriveImportFromDriveBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Reading sheet...';
+
+  try {
+    const stored = await chrome.storage.local.get(['gdriveSheetId']);
+    const sheetId = stored.gdriveSheetId;
+    if (!sheetId) {
+      showToast('❌ No Google Sheet found. Please export first.');
+      return;
+    }
+
+    // Get OAuth token
+    const tokenResult = await new Promise(resolve =>
+      chrome.identity.getAuthToken({ interactive: true }, token =>
+        resolve({ token, error: chrome.runtime.lastError?.message })
+      )
+    );
+    if (!tokenResult.token) {
+      showToast('❌ Could not get Google account token. Please reconnect.');
+      return;
+    }
+    const token = tokenResult.token;
+
+    // Fetch the History tab (sheet index 0) — this is where all schedules live permanently
+    // We filter by Status = Active so expired ones are not imported
+    const resp = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await resp.json();
+
+    if (!data.values || data.values.length < 2) {
+      showToast('ℹ️ No schedules found in your TabTimer History sheet.');
+      return;
+    }
+
+    const headers = data.values[0];
+    const rows = data.values.slice(1);
+
+    // Column indices
+    const col = {
+      name:      headers.indexOf('Name'),
+      url:       headers.indexOf('URL'),
+      category:  headers.indexOf('Category'),
+      repeatType: headers.indexOf('Repeat Type'),
+      schedTime: headers.indexOf('Schedule Time'),
+      expDate:   headers.indexOf('Expiration Date'),
+      expireTime: headers.indexOf('Expire Time'),
+      openCount: headers.indexOf('Open Count'),
+      notes:     headers.indexOf('Notes'),
+      status:    headers.indexOf('Status')
+    };
+
+    // Get existing URLs for duplicate detection
+    const existingUrls = new Set(locks.map(l => l.url.toLowerCase()));
+
+    // Filter to only Active rows, skip duplicates
+    const toImport = [];
+    const seenUrls = new Set(); // deduplicate within the import list itself
+    let skippedExpired = 0;
+    let skippedDuplicate = 0;
+
+    for (const row of rows) {
+      const status = col.status >= 0 ? (row[col.status] || '').trim() : '';
+      if (status !== 'Active') { skippedExpired++; continue; }
+
+      const url = col.url >= 0 ? (row[col.url] || '').trim() : '';
+      if (!url || !url.startsWith('http')) continue;
+
+      const urlLower = url.toLowerCase();
+
+      // Skip if already in TabTimer OR already in this import batch
+      if (existingUrls.has(urlLower) || seenUrls.has(urlLower)) { skippedDuplicate++; continue; }
+
+      seenUrls.add(urlLower);
+      toImport.push({
+        name:       col.name >= 0 ? (row[col.name] || '') : '',
+        url,
+        category:   col.category >= 0 ? (row[col.category] || 'Daily') : 'Daily',
+        repeatType: col.repeatType >= 0 ? (row[col.repeatType] || 'daily') : 'daily',
+        schedTime:  col.schedTime >= 0 ? (row[col.schedTime] || '') : '',
+        notes:      col.notes >= 0 ? (row[col.notes] || '') : '',
+        expireTime: col.expireTime >= 0 ? (row[col.expireTime] || '') : ''
+      });
+    }
+
+    if (toImport.length === 0) {
+      showToast(`ℹ️ Nothing to import. ${skippedDuplicate} duplicates, ${skippedExpired} non-active skipped.`);
+      return;
+    }
+
+    // Show preview modal
+    const modal = document.getElementById('gdriveImportModal');
+    const summary = document.getElementById('gdriveImportSummary');
+    const list = document.getElementById('gdriveImportList');
+
+    summary.innerHTML = `
+      <strong>✅ ${toImport.length} schedule${toImport.length !== 1 ? 's' : ''} ready to import</strong><br>
+      <span style="color: var(--text-muted); font-size: 12px;">
+        ${skippedDuplicate > 0 ? `${skippedDuplicate} duplicate${skippedDuplicate !== 1 ? 's' : ''} skipped &nbsp;|&nbsp; ` : ''}
+        ${skippedExpired > 0 ? `${skippedExpired} non-active skipped` : ''}
+      </span>
+    `;
+
+    list.innerHTML = toImport.map(s => `
+      <div style="padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px;">
+        <div style="font-weight: 600;">${s.name || s.url}</div>
+        <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">${s.url}</div>
+        <div style="color: var(--text-muted); font-size: 11px;">${s.category} · ${s.repeatType}${s.schedTime ? ' · ' + s.schedTime : ''}</div>
+      </div>
+    `).join('');
+
+    modal.style.display = 'flex';
+
+    // Handle confirm
+    const confirmBtn = document.getElementById('gdriveImportConfirmBtn');
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', async () => {
+      modal.style.display = 'none';
+      newConfirmBtn.disabled = true;
+      let imported = 0;
+
+      for (const s of toImport) {
+        // Parse schedule time
+        let unlockTime = new Date();
+        unlockTime.setDate(unlockTime.getDate() + 1);
+        if (s.schedTime) {
+          const parsed = new Date(s.schedTime);
+          if (!isNaN(parsed.getTime())) unlockTime = parsed;
+        }
+
+        // Parse repeat type label back to key
+        const repeatMap = {
+          'Daily': 'daily', 'Weekly': 'weekly', 'Monthly': 'monthly',
+          'Yearly': 'yearly', 'Once': 'once', 'Unlimited': 'unlimited',
+          'Weekdays': 'weekdays', 'Weekends': 'weekends', 'Mon-Sat': 'monsat',
+          'Every 3 Minutes': 'minutes', 'Every X Minutes': 'minutes'
+        };
+        const repeatType = repeatMap[s.repeatType] || 'daily';
+        const recurring = !['once', 'unlimited'].includes(repeatType);
+
+        // Parse expire time
+        let expireTime = null;
+        if (s.expireTime) {
+          const ep = new Date(s.expireTime);
+          if (!isNaN(ep.getTime())) expireTime = ep.toISOString();
+        }
+
+        await chrome.runtime.sendMessage({
+          action: 'createLock',
+          lock: {
+            url: s.url,
+            name: s.name || '',
+            category: s.category || 'Daily',
+            unlockTime: unlockTime.toISOString(),
+            recurring,
+            repeatType,
+            notes: s.notes || '',
+            expireTime,
+            lockMinutes: 0,
+            playSound: false
+          }
+        });
+        imported++;
+      }
+
+      showToast(`✅ Imported ${imported} schedule${imported !== 1 ? 's' : ''} from Google Drive!`);
+      await refreshData();
+      switchView('schedules');
+    });
+
+  } catch (err) {
+    showToast('❌ Import failed: ' + err.message);
+    console.error('Drive import error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⬇️ Import from Drive <span class="premium-badge" style="font-size:10px;padding:2px 6px;margin-left:4px;">PRO</span>';
   }
 }
 
