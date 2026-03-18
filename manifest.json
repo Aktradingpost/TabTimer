@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabTimer",
-  "version": "2.8.21",
+  "version": "2.8.22",
   "description": "Smart Website Scheduler - Schedule websites to open automatically at specific times. Free forever with optional Premium features!",
   "permissions": [
     "storage",
@@ -15,7 +15,7 @@
     "identity"
   ],
   "oauth2": {
-    "client_id": "357622841421-vt8hbqb87bv4cgrndion2f82193cp7aa.apps.googleusercontent.com",
+    "client_id": "357622841421-dj8v2beg55fn9ts04v0gv8betd9r5m08.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/spreadsheets",
       "https://www.googleapis.com/auth/drive.file"

@@ -4,7 +4,7 @@
 
 TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, and anyone who needs websites to open automatically on a schedule. No more missed entries. No more forgetting.
 
-[![Version](https://img.shields.io/badge/version-2.8.21-orange)](https://github.com/yourusername/tabtimer)
+[![Version](https://img.shields.io/badge/version-2.8.22-orange)](https://github.com/yourusername/tabtimer)
 [![License](https://img.shields.io/badge/license-Proprietary-blue)]()
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Published-green)](https://chrome.google.com/webstore)
 
@@ -23,6 +23,9 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 - Manage all schedules from one dashboard
 - Category filters (Daily, Weekly, Monthly, Once, Other)
 - **Google Drive History** — connect your Google account and manually export your full schedule history to a Google Sheet at any time (free)
+- **Expire Time field** — set an exact date and time for any schedule to be silently deleted
+- **Take focus when opening** — per-schedule option to bring a tab to the front regardless of global background setting
+- **Auto health check** — stuck schedules are silently repaired every time the management page opens
 
 ### PRO Features — $10 Lifetime License
 - **Weekdays (Mon–Fri)** repeat
@@ -35,12 +38,13 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 - **Edit category emoji, name, and color** anytime
 - **Notes field** — paste entry instructions with each schedule
 - Bulk import schedules via CSV or Excel
-- Bookmark folder import
+- Text URL import with pipe format for individual expire times (`https://example.com | 2026-03-31 09:00`)
+- Bookmark folder import with per-bookmark expire time popup for dated bookmarks
 - Auto-close tabs after opening
 - Sound notification when a tab opens
 - Advance reminder notification (seconds before opening)
 - Never Lock mode — opens tab without blocking your browsing
-- **Auto-sync daily to Google Drive** — your History Sheet updates automatically every day
+- **Auto-sync to Google Drive** — syncs immediately on every schedule change plus daily refresh
 - One-time payment, no subscription ever
 
 ---
@@ -66,13 +70,13 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 
 ## Google Drive History
 
-TabTimer can export your schedule history to a Google Sheet stored in your own Google Drive. This gives you a permanent record of every sweepstakes or website you have ever scheduled — including ones that have expired or been deleted — so you can look back months later and see exactly how many times you entered.
+TabTimer can export your schedule history to a Google Sheet stored in your own Google Drive. This gives you a permanent record of every website you have ever scheduled — including ones that have expired or been deleted — so you can look back months later and see exactly how many times you visited any site.
 
 ### How it works
 1. Go to **Backup/Sync** in the sidebar and click **Connect Google Account**
 2. Sign in with your Google account — TabTimer will create a sheet called **TabTimer History** in your Drive
 3. Click **Export to Drive Now** any time to update the sheet manually (free)
-4. PRO users can enable **Auto-sync daily** to have the sheet update automatically every day
+4. PRO users can enable **Auto-sync** to have the sheet update automatically every time a schedule changes
 
 ### What gets recorded
 The sheet has two tabs:
@@ -80,7 +84,15 @@ The sheet has two tabs:
 - **Active Schedules** — a live snapshot of everything currently scheduled in TabTimer
 
 ### Columns recorded
-Name, URL, Category, Repeat Type, Schedule Time, Expiration Date, Open Count, Notes, Date Added, Last Opened, Status
+Name, URL, Category, Repeat Type, Schedule Time, Expiration Date, Expire Time, Open Count, Date Added, Last Opened, Status, Notes
+
+### Sheet formatting
+- Header row and first column (Name) are frozen for easy scrolling
+- Columns auto-size to content width after each export
+- URL column is capped at 250px so long URLs do not take over the sheet
+
+### Reset & Recreate Sheet
+If you need to start fresh, use the **🗑️ Reset & Recreate Sheet** button in the Google Drive History card. This deletes your existing sheet, creates a new one with fresh formatting, and re-exports all your data automatically.
 
 ### Privacy
 Your data goes directly from TabTimer to your own personal Google Drive. TabTimer does not send your data to any third-party server. Only you have access to the sheet.

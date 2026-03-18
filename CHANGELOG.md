@@ -2,21 +2,42 @@
 
 ---
 
-## v2.8.21 — March 2026
-
-### New Features
-- **Google Drive History (FREE + PRO)** — export your schedule history directly to a Google Sheet in your own Google Drive; keeps a permanent record of all schedules including expired and deleted ones, so you can look back months later and see exactly how many times you entered any sweepstakes
-- **History tab in Google Sheet** — every schedule you have ever created is logged permanently; when a schedule expires or is deleted from TabTimer it is automatically marked "Expired" in the sheet rather than removed
-- **Active Schedules tab in Google Sheet** — a live snapshot of everything currently scheduled in TabTimer, refreshed every time you sync
-- **Manual Export to Drive (FREE)** — connect your Google account and export to your sheet any time with one click
-- **Auto-sync daily to Drive (PRO)** — TabTimer automatically updates your Google Sheet every day without you having to do anything
+## v2.8.22 — March 2026
 
 ### Bug Fixes
-- **Schedules no longer open a day early** — fixed a bug in the Health Check where a brand new recurring schedule with a future start date was incorrectly treated as "stuck" and advanced forward, causing it to fire one day earlier than intended; the Health Check now correctly leaves any schedule whose next open time is still in the future completely untouched
+- **Google Drive connection fixed for Chrome Web Store users** — updated OAuth Client ID to match the published Chrome Web Store extension ID; Google Drive History now connects correctly for all users who installed from the Chrome Web Store
 
 ---
 
-## v2.8.20 — March 2026
+## v2.8.21 — March 2026
+
+### New Features
+- **Google Drive History (FREE + PRO)** — export your full schedule history to a Google Sheet in your own Google Drive; keeps a permanent record of all schedules including expired and deleted ones so you can look back and see how many times you visited any site
+- **History tab in Google Sheet** — every schedule ever created is logged permanently; expired or deleted schedules are marked "Expired" rather than removed
+- **Active Schedules tab in Google Sheet** — a live snapshot of everything currently scheduled, refreshed every sync
+- **Manual Export to Drive (FREE)** — connect your Google account and export with one click at any time
+- **Auto-sync to Google Drive (PRO)** — syncs immediately whenever a schedule is added, edited, or deleted, plus a full daily refresh as a safety net
+- **Reset & Recreate Sheet button** — deletes and recreates your TabTimer History sheet from inside TabTimer without needing to go to Google Drive manually
+- **Pastel header row** — Google Sheet headers use a soft pastel blue with frozen first column and frozen header row for easy scrolling
+- **Expire Time field** — new optional date/time field on Add New, Edit, Right-click, and Bulk Import that silently deletes a schedule at an exact date and time, independent of the date-in-name system
+- **Bookmark import expire time popup** — when importing a bookmark folder, any bookmark with a date in the name shows a popup asking for a specific expire time on that date
+- **Text URL import pipe format** — text URL import now supports `https://example.com | 2026-03-31 09:00` format for individual expire times per URL
+- **Take focus when opening (🎯)** — new per-schedule checkbox in Add New and Edit that overrides the global background setting so a specific tab comes to the front when it opens
+- **Device Transfer section** — renamed and relabeled Cloud Sync to "Device Transfer" with clearer honest description explaining it is a manual file transfer, not automatic syncing
+- **⭐ Leave a Review** — review link added to sidebar, Settings page card, and uninstall page (shown after 4–5 star feedback)
+- **Auto health check on page open** — stuck schedules are silently repaired every time the management page opens; a toast shows only if something was actually fixed
+- **Trial abuse prevention** — trial usage is now stored in `chrome.storage.sync` which persists across uninstalls and reinstalls for Chrome Web Store users
+
+### Bug Fixes
+- **Schedules no longer open a day early** — Health Check now correctly leaves schedules with future start dates untouched instead of advancing them forward
+- **Expire Time loop fix** — expireTime deletions no longer corrupt the main schedule loop; expired schedules are collected first, deleted together, then the loop exits cleanly
+- **Test Notification fixed** — now uses a unique ID each time and shows a toast confirming success or explaining failure
+- **Unlimited/Every X Minutes schedules no longer interrupted** — fixed a bug where inline deletions during the check loop affected recurring schedules
+- **Auto-sync PRO check fixed** — now correctly reads the license object instead of checking wrong storage keys, so PRO users can enable auto-sync without being incorrectly blocked
+- **Backup filenames now use local date** — manual backup, device transfer export, and auto-backup downloads all use your computer's local date instead of UTC, fixing the "tomorrow's date" bug for Alaska and other UTC-offset timezones
+- **Welcome page review button removed** — the Leave a Review button on the welcome page has been removed as it linked to an incorrect page
+
+
 
 ### Bug Fixes
 - **Category emoji updates instantly** — editing a category emoji now refreshes the sidebar and Manage Categories list immediately without requiring a page reload
