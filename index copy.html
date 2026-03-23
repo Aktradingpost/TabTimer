@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabTimer Pro — Smart Website Scheduler for Chrome, Firefox & Edge</title>
+  <meta name="description" content="TabTimer automatically opens your scheduled websites at the exact times you set. Perfect for sweepstakes, morning routines, and daily workflows. Free forever with optional Premium.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #e06c2a;
+      --orange-dark: #c45a20;
+      --orange-light: #fed7aa;
+      --cream: #fefaf4;
+      --dark: #1a1208;
+      --dark2: #2d1f0a;
+      --mid: #78350f;
+      --soft: #92400e;
+      --text: #3d2008;
+      --muted: #a16207;
+      --border: #fde68a;
+      --white: #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(254,250,244,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: 1.25rem; color: var(--dark);
+      text-decoration: none;
+    }
+    .logo-icon { font-size: 1.5rem; }
+    .logo span { color: var(--orange); }
+    nav { display: flex; gap: 2rem; align-items: center; }
+    nav a {
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--text); text-decoration: none;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--orange); }
+    .btn-nav {
+      background: var(--orange); color: white !important;
+      padding: 8px 20px; border-radius: 100px;
+      font-weight: 600 !important; font-size: 0.875rem !important;
+      transition: background 0.2s, transform 0.1s !important;
+    }
+    .btn-nav:hover { background: var(--orange-dark) !important; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      padding: 120px 2rem 80px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 40%, rgba(224,108,42,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 20% 80%, rgba(251,191,36,0.1) 0%, transparent 60%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0; opacity: 0.04;
+      background-image: linear-gradient(var(--orange) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--orange) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .hero-inner {
+      max-width: 1100px; width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--orange-light); color: var(--orange-dark);
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero h1 {
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: clamp(2.5rem, 5vw, 3.8rem);
+      line-height: 1.1; color: var(--dark);
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .hero h1 em { color: var(--orange); font-style: normal; }
+    .hero p {
+      font-size: 1.1rem; line-height: 1.7;
+      color: var(--soft); margin-bottom: 2rem;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .hero-ctas {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--orange); color: white;
+      padding: 14px 28px; border-radius: 12px;
+      font-weight: 600; font-size: 1rem;
+      text-decoration: none; transition: all 0.2s;
+      box-shadow: 0 4px 24px rgba(224,108,42,0.35);
+    }
+    .btn-primary:hover {
+      background: var(--orange-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(224,108,42,0.45);
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: white; color: var(--text);
+      padding: 14px 28px; border-radius: 12px;
+      font-weight: 600; font-size: 1rem;
+      text-decoration: none; transition: all 0.2s;
+      border: 2px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-2px); }
+
+    /* Hero mock UI */
+    .hero-visual {
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .mock-window {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 24px 80px rgba(120,53,15,0.18), 0 4px 16px rgba(120,53,15,0.08);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .mock-bar {
+      background: linear-gradient(135deg, #e06c2a, #c45a20);
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mock-bar-title {
+      font-family: 'Nunito', sans-serif; font-weight: 700;
+      color: white; font-size: 1rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mock-dots { display: flex; gap: 6px; }
+    .mock-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+    }
+    .mock-body { padding: 16px; }
+    .mock-schedule {
+      background: var(--cream);
+      border-radius: 10px; padding: 12px 14px;
+      margin-bottom: 10px;
+      border-left: 3px solid var(--orange);
+      display: flex; align-items: center; justify-content: space-between;
+      animation: pulse 3s ease-in-out infinite;
+    }
+    .mock-schedule:nth-child(2) { border-left-color: #22c55e; animation-delay: 1s; }
+    .mock-schedule:nth-child(3) { border-left-color: #3b82f6; animation-delay: 2s; }
+    .mock-sname { font-weight: 600; font-size: 0.82rem; color: var(--dark); }
+    .mock-stime { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .mock-badge {
+      font-size: 0.7rem; font-weight: 700; padding: 3px 8px;
+      border-radius: 100px; background: #dcfce7; color: #166534;
+    }
+    .mock-badge.blue { background: #dbeafe; color: #1e40af; }
+    .mock-badge.orange { background: #fed7aa; color: #9a3412; }
+    .mock-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-top: 12px;
+    }
+    .mock-stat {
+      background: white; border-radius: 8px; padding: 10px;
+      text-align: center; border: 1px solid var(--border);
+    }
+    .mock-stat-num {
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: 1.3rem; color: var(--orange);
+    }
+    .mock-stat-label { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── TRUST BAR ── */
+    .trust-bar {
+      background: var(--dark);
+      padding: 20px 2rem;
+      display: flex; align-items: center; justify-content: center;
+      gap: 3rem; flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 8px;
+      color: rgba(255,255,255,0.7); font-size: 0.875rem; font-weight: 500;
+    }
+    .trust-item span { font-size: 1rem; }
+
+    /* ── SECTIONS ── */
+    section { padding: 80px 2rem; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+      color: var(--dark); line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      font-size: 1.05rem; color: var(--soft);
+      font-weight: 300; line-height: 1.7;
+      max-width: 560px;
+    }
+
+    /* ── FEATURES ── */
+    .features-bg { background: white; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--cream);
+      border-radius: 16px; padding: 28px;
+      border: 1px solid var(--border);
+      transition: all 0.25s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--orange), #fbbf24);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(120,53,15,0.1); }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .feature-title {
+      font-family: 'Nunito', sans-serif; font-weight: 700;
+      font-size: 1.05rem; color: var(--dark); margin-bottom: 0.5rem;
+    }
+    .feature-desc { font-size: 0.9rem; color: var(--soft); line-height: 1.6; font-weight: 300; }
+
+    /* ── PERFECT FOR ── */
+    .perfect-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem; margin-top: 3rem;
+    }
+    .perfect-card {
+      background: white;
+      border-radius: 14px; padding: 24px;
+      border: 1px solid var(--border);
+      display: flex; gap: 14px; align-items: flex-start;
+      transition: all 0.2s;
+    }
+    .perfect-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+    .perfect-emoji { font-size: 1.75rem; flex-shrink: 0; }
+    .perfect-title { font-weight: 700; color: var(--dark); margin-bottom: 4px; font-size: 0.95rem; }
+    .perfect-desc { font-size: 0.85rem; color: var(--soft); line-height: 1.5; font-weight: 300; }
+
+    /* ── PRICING ── */
+    .pricing-bg { background: var(--dark); }
+    .pricing-bg .section-title { color: white; }
+    .pricing-bg .section-sub { color: rgba(255,255,255,0.6); }
+    .pricing-bg .section-label { color: #fbbf24; }
+    .pricing-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.5rem; margin-top: 3rem; max-width: 780px;
+    }
+    .price-card {
+      background: rgba(255,255,255,0.06);
+      border-radius: 20px; padding: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+    .price-card.featured {
+      background: linear-gradient(135deg, rgba(224,108,42,0.25), rgba(234,88,12,0.15));
+      border-color: var(--orange);
+    }
+    .price-tag {
+      position: absolute; top: -12px; right: 20px;
+      background: var(--orange); color: white;
+      font-size: 0.75rem; font-weight: 700; padding: 4px 12px;
+      border-radius: 100px; letter-spacing: 0.05em;
+    }
+    .price-name {
+      font-family: 'Nunito', sans-serif; font-weight: 700;
+      color: white; font-size: 1.1rem; margin-bottom: 0.5rem;
+    }
+    .price-amount {
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: 2.5rem; color: white; margin-bottom: 0.25rem;
+    }
+    .price-amount span { font-size: 1rem; font-weight: 400; color: rgba(255,255,255,0.5); }
+    .price-note { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 1.5rem; }
+    .price-features { list-style: none; }
+    .price-features li {
+      padding: 7px 0; font-size: 0.875rem;
+      color: rgba(255,255,255,0.75);
+      display: flex; gap: 8px; align-items: flex-start;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .price-features li:last-child { border-bottom: none; }
+    .price-features li::before { content: '✓'; color: #4ade80; font-weight: 700; flex-shrink: 0; }
+    .price-cta {
+      display: block; text-align: center;
+      margin-top: 1.5rem; padding: 12px;
+      border-radius: 10px; font-weight: 600; font-size: 0.95rem;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .price-cta.free { background: rgba(255,255,255,0.1); color: white; }
+    .price-cta.free:hover { background: rgba(255,255,255,0.18); }
+    .price-cta.premium { background: var(--orange); color: white; }
+    .price-cta.premium:hover { background: var(--orange-dark); transform: translateY(-1px); }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 2rem; margin-top: 3rem; position: relative;
+    }
+    .step {
+      text-align: center; padding: 0 1rem;
+    }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), #fbbf24);
+      color: white; font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 4px 20px rgba(224,108,42,0.4);
+    }
+    .step-title { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1rem; color: var(--dark); margin-bottom: 0.5rem; }
+    .step-desc { font-size: 0.875rem; color: var(--soft); line-height: 1.6; font-weight: 300; }
+
+    /* ── PRIVACY ── */
+    .privacy-bg { background: white; }
+    .privacy-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin-top: 2.5rem;
+    }
+    .privacy-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 16px; border-radius: 12px;
+      background: var(--cream); border: 1px solid var(--border);
+    }
+    .privacy-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .privacy-text { font-size: 0.875rem; color: var(--soft); line-height: 1.5; font-weight: 400; }
+    .privacy-text strong { color: var(--dark); font-weight: 600; display: block; margin-bottom: 2px; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      text-align: center; padding: 80px 2rem;
+    }
+    .cta-section h2 {
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: white; margin-bottom: 1rem;
+    }
+    .cta-section p { color: rgba(255,255,255,0.8); font-size: 1.1rem; margin-bottom: 2rem; font-weight: 300; }
+    .btn-white {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: white; color: var(--orange-dark);
+      padding: 16px 36px; border-radius: 12px;
+      font-weight: 700; font-size: 1.05rem;
+      text-decoration: none; transition: all 0.2s;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .btn-white:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(0,0,0,0.25); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark2);
+      padding: 48px 2rem 32px;
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; flex-wrap: wrap; gap: 2rem;
+      justify-content: space-between; align-items: flex-start;
+    }
+    .footer-brand .logo { margin-bottom: 0.75rem; }
+    .footer-brand p { font-size: 0.85rem; color: rgba(255,255,255,0.4); max-width: 260px; line-height: 1.6; }
+    .footer-links h4 {
+      font-family: 'Nunito', sans-serif; font-weight: 700;
+      color: rgba(255,255,255,0.8); font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+    .footer-links a {
+      display: block; color: rgba(255,255,255,0.5);
+      text-decoration: none; font-size: 0.875rem;
+      margin-bottom: 0.5rem; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--orange); }
+    .footer-bottom {
+      max-width: 1100px; margin: 2rem auto 0;
+      padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-bottom p { font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .trust-bar { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a href="#" class="logo">
+    <span class="logo-icon">🕐</span>
+    Tab<span>Timer</span> Pro
+  </a>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#perfect-for">Use Cases</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" class="btn-nav" target="_blank">Add to Chrome — Free</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">🏆 Chrome · Firefox · Edge &nbsp;·&nbsp; Free Forever</div>
+      <h1>Your websites.<br>Open <em>automatically</em>.<br>Every time.</h1>
+      <p>TabTimer schedules any website to open at the exact time you choose — daily, weekly, or every few minutes. Perfect for sweepstakes, morning routines, and daily workflows. No login. No account. Just set it and forget it.</p>
+      <div class="hero-ctas">
+        <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" class="btn-primary" target="_blank">
+          ➕ Add to Chrome — It's Free
+        </a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/tabtimer-pro/" class="btn-primary" target="_blank">
+          🦊 Add to Firefox — It's Free
+        </a>
+        <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" class="btn-secondary" target="_blank">
+          🌐 Add to Edge — It's Free
+        </a>
+        <a href="#features" class="btn-secondary">See All Features</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="mock-window">
+        <div class="mock-bar">
+          <div class="mock-bar-title">🕐 TabTimer — Management</div>
+          <div class="mock-dots">
+            <div class="mock-dot"></div>
+            <div class="mock-dot"></div>
+            <div class="mock-dot"></div>
+          </div>
+        </div>
+        <div class="mock-body">
+          <div class="mock-schedule">
+            <div>
+              <div class="mock-sname">🏆 Spring Break Sweepstakes</div>
+              <div class="mock-stime">⏰ Opens: Today, 9:00 AM · Every 3 min</div>
+            </div>
+            <div class="mock-badge">Active</div>
+          </div>
+          <div class="mock-schedule">
+            <div>
+              <div class="mock-sname">📰 Morning News Roundup</div>
+              <div class="mock-stime">⏰ Opens: Daily, 7:30 AM</div>
+            </div>
+            <div class="mock-badge blue">Daily</div>
+          </div>
+          <div class="mock-schedule">
+            <div>
+              <div class="mock-sname">🎯 Hawaii Dream Trip Contest</div>
+              <div class="mock-stime">⏰ Opens: Daily, 8:00 AM · Auto-close 2 min</div>
+            </div>
+            <div class="mock-badge orange">Recurring</div>
+          </div>
+          <div class="mock-stats">
+            <div class="mock-stat">
+              <div class="mock-stat-num">90</div>
+              <div class="mock-stat-label">Schedules</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-num">84</div>
+              <div class="mock-stat-label">Active</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-num">2,334</div>
+              <div class="mock-stat-label">Total Opens</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item"><span>✅</span> Free forever — no account needed</div>
+  <div class="trust-item"><span>🔒</span> All data stored locally on your device</div>
+  <div class="trust-item"><span>⚡</span> Works with any website</div>
+  <div class="trust-item"><span>🏆</span> $10 lifetime Premium license</div>
+</div>
+
+<!-- FEATURES -->
+<section class="features-bg" id="features">
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything you need to automate your browsing</h2>
+    <p class="section-sub">Powerful scheduling tools built right into Chrome — no separate app, no subscriptions, no complexity.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">Schedule Any Website</div>
+        <div class="feature-desc">Set any URL to open automatically at a specific date and time. One-time or recurring — you decide.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔁</div>
+        <div class="feature-title">Recurring Schedules</div>
+        <div class="feature-desc">Daily, Weekly, Monthly, Yearly — schedules fire automatically every time without any intervention.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⏱️</div>
+        <div class="feature-title">Auto-Close Tab</div>
+        <div class="feature-desc">Set a tab to close itself after X minutes. Perfect for contest entries that need to open and close automatically.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-title">Advance Notifications</div>
+        <div class="feature-desc">Get alerted seconds before a tab opens so you're ready. One notification per event — no double alerts.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⏳</div>
+        <div class="feature-title">Grace Period</div>
+        <div class="feature-desc">If Chrome was closed, TabTimer catches up and opens missed tabs when you return — within your set grace period.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖱️</div>
+        <div class="feature-title">Right-Click Quick Schedule</div>
+        <div class="feature-desc">Right-click any page and instantly schedule it for Tomorrow 7AM or 1 Hour from now — no dialog needed.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <div class="feature-title">Backup & Restore</div>
+        <div class="feature-desc">Export all your schedules to a file and restore them any time. Your workflow is always safe. <em style="font-size:0.85em;color:#999;">(Google Drive sync: Chrome only)</em></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌙</div>
+        <div class="feature-title">Dark & Light Theme</div>
+        <div class="feature-desc">Choose the look that works for you. Clean, beautiful management page that's a pleasure to use.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⌨️</div>
+        <div class="feature-title">Keyboard Shortcuts</div>
+        <div class="feature-desc">Alt+L to schedule any page instantly. Alt+O to open the management screen. Stay in your flow.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFECT FOR -->
+<section id="perfect-for">
+  <div class="section-inner">
+    <div class="section-label">Use Cases</div>
+    <h2 class="section-title">Perfect for anyone with a daily online routine</h2>
+    <p class="section-sub">From sweepstakes enthusiasts to professionals — TabTimer handles the repetitive work so you don't have to.</p>
+    <div class="perfect-grid">
+      <div class="perfect-card">
+        <div class="perfect-emoji">🏆</div>
+        <div>
+          <div class="perfect-title">Contests & Sweepstakes</div>
+          <div class="perfect-desc">Never miss an entry window. Schedule every contest to open and auto-close automatically, every single day.</div>
+        </div>
+      </div>
+      <div class="perfect-card">
+        <div class="perfect-emoji">☀️</div>
+        <div>
+          <div class="perfect-title">Morning Routines</div>
+          <div class="perfect-desc">News, email, weather, and work tools — all open automatically when you sit down at your desk.</div>
+        </div>
+      </div>
+      <div class="perfect-card">
+        <div class="perfect-emoji">💼</div>
+        <div>
+          <div class="perfect-title">Work Schedules</div>
+          <div class="perfect-desc">Launch dashboards, project tools, and daily reports at the start of every workday without lifting a finger.</div>
+        </div>
+      </div>
+      <div class="perfect-card">
+        <div class="perfect-emoji">📋</div>
+        <div>
+          <div class="perfect-title">Daily Check-Ins</div>
+          <div class="perfect-desc">Sites that need a daily visit — forums, trackers, portals — open right on schedule without you remembering.</div>
+        </div>
+      </div>
+      <div class="perfect-card">
+        <div class="perfect-emoji">⏰</div>
+        <div>
+          <div class="perfect-title">Timed Reminders</div>
+          <div class="perfect-desc">Open a specific page as a visual reminder at a set time — a healthier, browser-native alternative to sticky notes.</div>
+        </div>
+      </div>
+      <div class="perfect-card">
+        <div class="perfect-emoji">🔄</div>
+        <div>
+          <div class="perfect-title">Recurring Tasks</div>
+          <div class="perfect-desc">Weekly reports, monthly check-ins, quarterly reviews — automate your entire recurring browsing workflow.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-bg" id="pricing">
+  <div class="section-inner">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Simple, honest pricing</h2>
+    <p class="section-sub" style="color:rgba(255,255,255,0.6);">Free forever for core features. One small payment for everything else — no subscriptions, ever.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-name">Free</div>
+        <div class="price-amount">$0 <span>/ forever</span></div>
+        <div class="price-note">No account required</div>
+        <ul class="price-features">
+          <li>Schedule any website</li>
+          <li>Daily, Weekly, Monthly, Yearly repeats</li>
+          <li>Auto-close tab after opening</li>
+          <li>Advance notification reminders</li>
+          <li>Grace period for missed tabs</li>
+          <li>Right-click quick schedule</li>
+          <li>Backup & restore</li>
+          <li>Dark/Light theme</li>
+          <li>Keyboard shortcuts</li>
+        </ul>
+        <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" class="price-cta free" target="_blank">Add to Chrome Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tag">BEST VALUE</div>
+        <div class="price-name">Premium</div>
+        <div class="price-amount">$10 <span>/ lifetime</span></div>
+        <div class="price-note">7-day free trial — no credit card needed</div>
+        <ul class="price-features">
+          <li>Everything in Free, plus:</li>
+          <li>Every X Minutes / Every X Hours</li>
+          <li>Weekdays, Weekends, Custom Days</li>
+          <li>Bulk Import from CSV, Excel, or bookmarks</li>
+          <li>Bulk reschedule with staggered times</li>
+          <li>Custom color-coded categories</li>
+          <li>Private notes on any schedule</li>
+          <li>Advanced search with saved presets</li>
+          <li>Drag & drop reordering</li>
+          <li>Shift+Click range selection</li>
+        </ul>
+        <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" class="price-cta premium" target="_blank">Start Free 7-Day Trial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="section-inner">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">Up and running in 60 seconds</h2>
+    <p class="section-sub">No setup, no configuration, no account. Just install and start scheduling.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Install TabTimer</div>
+        <div class="step-desc">Add TabTimer to Chrome or Firefox from their extension stores. It's free and takes under 10 seconds. Also available on Edge.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Right-Click Any Page</div>
+        <div class="step-desc">Right-click any webpage and choose "TabTimer → Schedule this page" or press Alt+L to open the scheduler instantly.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Set Your Schedule</div>
+        <div class="step-desc">Pick your date, time, how often it repeats, and whether to auto-close after opening. Click Schedule.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Sit Back & Relax</div>
+        <div class="step-desc">TabTimer handles everything from here. Your pages open automatically, right on time, every time.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- VIDEO -->
+<section style="background: white; padding: 80px 2rem;">
+  <div class="section-inner">
+    <div class="section-label">See It In Action</div>
+    <h2 class="section-title">TabTimer — Explained</h2>
+    <p class="section-sub">Watch this quick walkthrough to learn everything TabTimer can do and how to get started in minutes.</p>
+    <div style="margin-top: 2.5rem; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 80px rgba(120,53,15,0.15); border: 1px solid #fde68a; max-width: 860px;">
+      <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+        <iframe 
+          src="https://www.youtube.com/embed/iDo_b6VrRUA" 
+          title="TabTimer Pro - Smart Website Scheduler for Chrome"
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          allowfullscreen
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section class="privacy-bg">
+  <div class="section-inner">
+    <div class="section-label">Privacy</div>
+    <h2 class="section-title">Your data stays on your device</h2>
+    <p class="section-sub">TabTimer was built with privacy as a core principle — not an afterthought.</p>
+    <div class="privacy-grid">
+      <div class="privacy-item">
+        <div class="privacy-icon">🔒</div>
+        <div class="privacy-text"><strong>Local Storage Only</strong>All schedule data is stored on your device only. Nothing leaves your browser.</div>
+      </div>
+      <div class="privacy-item">
+        <div class="privacy-icon">🚫</div>
+        <div class="privacy-text"><strong>Zero Data Collection</strong>We collect nothing. No analytics, no tracking, no telemetry of any kind.</div>
+      </div>
+      <div class="privacy-item">
+        <div class="privacy-icon">📢</div>
+        <div class="privacy-text"><strong>No Advertising</strong>TabTimer contains no ads and we never will. Your attention is yours.</div>
+      </div>
+      <div class="privacy-item">
+        <div class="privacy-icon">💻</div>
+        <div class="privacy-text"><strong>Open Source</strong>Source code is publicly available on GitHub. Nothing to hide.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Stop opening websites manually.<br>Let TabTimer do it for you.</h2>
+  <p>Free forever. No account needed. Install in 10 seconds.</p>
+  <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" class="btn-white" target="_blank">
+    ➕ Add TabTimer to Chrome — Free
+  </a>
+  &nbsp;
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/tabtimer-pro/" class="btn-white" target="_blank">
+    🦊 Add TabTimer to Firefox — Free
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="logo" style="color:white;">
+        <span class="logo-icon">🕐</span>
+        Tab<span>Timer</span> Pro
+      </a>
+      <p>Smart Website Scheduler for Chrome, Firefox & Edge. Free forever with optional Premium features.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Product</h4>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" target="_blank">Chrome Web Store</a>
+      <a href="https://addons.mozilla.org/en-US/firefox/addon/tabtimer-pro/" target="_blank">Firefox Add-ons</a>
+      <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" target="_blank">Microsoft Edge Add-ons</a>
+    </div>
+    <div class="footer-links">
+      <h4>Support</h4>
+      <a href="https://github.com/Aktradingpost/TabTimer/issues" target="_blank">Report a Bug</a>
+      <a href="https://github.com/Aktradingpost/TabTimer" target="_blank">GitHub</a>
+      <a href="https://chromewebstore.google.com/detail/tabtimer/doldjjkenhkdgibacbenanejmfjoifoj" target="_blank">Contact via Chrome Web Store</a>
+    </div>
+    <div class="footer-links">
+      <h4>Legal</h4>
+      <a href="https://tabtimerpro.com/privacy.html" target="_blank">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="foote
