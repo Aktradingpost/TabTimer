@@ -2,6 +2,16 @@
 
 ---
 
+## v2.8.25 — March 2026
+
+### Bug Fixes
+- **Fixed Google Drive History duplicating rows on every sync** — export now reads existing URLs directly from the sheet to detect duplicates instead of relying on `gdriveHistoryIds` in local storage which was wiped on reinstall; schedules are deduplicated by URL+Name so no row is ever added twice
+- **Fixed expired schedules being written to Notes column instead of Status column** — expired schedule detection was incorrectly writing "Expired" to column L (Notes) instead of column K (Status); fixed in both manual export and auto-sync
+- **Expired schedules now stay in History forever** — rows are never deleted from the History tab; when a schedule expires or is deleted from TabTimer it is marked "Expired" in the Status column and highlighted in light pink so it is easy to see at a glance
+- **Expired rows turn light pink automatically** — when a schedule is marked Expired in the History sheet its entire row is colored light pink/red so expired entries stand out visually without any manual formatting
+
+---
+
 ## v2.8.24 — March 2026
 
 ### New Features

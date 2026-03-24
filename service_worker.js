@@ -2214,7 +2214,7 @@ function triggerGdriveSync() {
 async function performGdriveDailySync() {
   const result = await chrome.storage.local.get([
     'gdriveAutoSync', 'gdriveConnected', 'gdriveSheetId',
-    'gdriveToken', 'locks', 'gdriveHistoryIds', 'license'
+    'gdriveToken', 'locks', 'license'
   ]);
 
   // Only run if enabled, connected, and PRO
@@ -2241,10 +2241,22 @@ async function performGdriveDailySync() {
 
     const locks = result.locks || [];
     const sheetId = result.gdriveSheetId;
-    const historyIds = new Set(result.gdriveHistoryIds || []);
 
-    // Append new schedules to History tab
-    const newLocks = locks.filter(l => !historyIds.has(l.id));
+    // Read existing History rows to check for duplicates by URL+Name
+    // This prevents duplicates even after reinstall
+    const existingResp = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const existingData = await existingResp.json();
+    const existingRows = existingData.values || [];
+    const existingKeys = new Set(existingRows.map(r => `${(r[1] || '').toLowerCase()}||${(r[0] || '').toLowerCase()}`));
+
+    // Append new schedules to History tab — only ones not already in sheet
+    const newLocks = locks.filter(l => {
+      const key = `${(l.url || '').toLowerCase()}||${(l.name || '').toLowerCase()}`;
+      return !existingKeys.has(key);
+    });
     if (newLocks.length > 0) {
       await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
@@ -2254,23 +2266,18 @@ async function performGdriveDailySync() {
           body: JSON.stringify({ values: newLocks.map(l => formatLockRowSW(l)) })
         }
       );
-      const allHistoryIds = [...historyIds, ...newLocks.map(l => l.id)];
-      await chrome.storage.local.set({ gdriveHistoryIds: allHistoryIds });
     }
 
-    // Mark expired rows in History
-    const historyResp = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const historyData = await historyResp.json();
-    const historyRows = historyData.values || [];
+    // Mark expired rows in History — reuse existingRows already fetched
+    const historyRows = existingRows;
     const activeLockKeys = new Set(locks.map(l => `${l.url}||${l.name}`));
     const batchUpdates = [];
+    const expiredRowIndices = [];
     historyRows.forEach((row, idx) => {
       const key = `${row[1] || ''}||${row[0] || ''}`;
       if (!activeLockKeys.has(key) && (row[10] || '') !== 'Expired') {
-        batchUpdates.push({ range: `History!L${idx + 2}`, values: [['Expired']] });
+        batchUpdates.push({ range: `History!K${idx + 2}`, values: [['Expired']] });
+        expiredRowIndices.push(idx + 2);
       }
     });
     if (batchUpdates.length > 0) {
@@ -2282,6 +2289,32 @@ async function performGdriveDailySync() {
           body: JSON.stringify({ valueInputOption: 'RAW', data: batchUpdates })
         }
       );
+
+      // Color expired rows light pink on History tab
+      if (expiredRowIndices.length > 0) {
+        const colorRequests = expiredRowIndices.map(rowIdx => ({
+          repeatCell: {
+            range: {
+              sheetId: 0,
+              startRowIndex: rowIdx - 1,
+              endRowIndex: rowIdx,
+              startColumnIndex: 0,
+              endColumnIndex: 12
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.96, green: 0.80, blue: 0.80 }
+              }
+            },
+            fields: 'userEnteredFormat.backgroundColor'
+          }
+        }));
+        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: colorRequests })
+        });
+      }
     }
 
     // Refresh Active Schedules tab

@@ -4816,7 +4816,7 @@ async function gdriveExportNow() {
   try {
     const token = await gdriveGetToken();
     const stored = await chrome.storage.local.get([
-      'locks', 'gdriveSheetId', 'gdriveHistoryIds'
+      'locks', 'gdriveSheetId'
     ]);
 
     const sheetId = stored.gdriveSheetId;
@@ -4826,17 +4826,27 @@ async function gdriveExportNow() {
     }
 
     const locks = stored.locks || [];
-    // Track IDs we've already written to history so we don't duplicate
-    const historyIds = new Set(stored.gdriveHistoryIds || []);
+
+    // ---- Read existing History rows to build URL+Name index ----
+    // This prevents duplicates even after reinstall since we check the SHEET not local storage
+    const existingResp = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const existingData = await existingResp.json();
+    const existingRows = existingData.values || [];
+
+    // Build a set of URL||Name keys already in the sheet
+    const existingKeys = new Set(existingRows.map(r => `${(r[1] || '').toLowerCase()}||${(r[0] || '').toLowerCase()}`));
 
     // ---- Update HISTORY tab ----
-    // Only append locks not yet in history
-    const newLocks = locks.filter(l => !historyIds.has(l.id));
+    // Only append locks not already in the sheet (check by URL+Name, not by ID)
+    const newLocks = locks.filter(l => {
+      const key = `${(l.url || '').toLowerCase()}||${(l.name || '').toLowerCase()}`;
+      return !existingKeys.has(key);
+    });
 
     if (newLocks.length > 0) {
-      const newRows = newLocks.map(l => ({
-        values: formatLockForSheet(l).map(v => ({ userEnteredValue: { stringValue: v } }))
-      }));
 
       await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
@@ -4851,38 +4861,32 @@ async function gdriveExportNow() {
           })
         }
       );
-
-      // Save updated history IDs
-      const allHistoryIds = [...historyIds, ...newLocks.map(l => l.id)];
-      await chrome.storage.local.set({ gdriveHistoryIds: allHistoryIds });
     }
 
     // ---- Update STATUS of expired schedules in History tab ----
-    // Get all rows from History to find any that need status update
-    const historyResp = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/History!A2:L`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const historyData = await historyResp.json();
-    const historyRows = historyData.values || [];
+    // Reuse existingRows already fetched above — no need for a second fetch
+    const historyRows = existingRows;
 
     // Build a set of active lock URLs+names for quick lookup
     const activeLockKeys = new Set(locks.map(l => `${l.url}||${l.name}`));
 
     // Find rows that are in History but no longer in active locks → mark Expired
     const batchUpdates = [];
+    const expiredRowIndices = [];
     historyRows.forEach((row, idx) => {
       const rowUrl = row[1] || '';
       const rowName = row[0] || '';
-      const rowStatus = row[10] || ''; // Status is column 11 (index 10): Name,URL,Cat,Repeat,SchedTime,ExpDate,ExpireTime,OpenCount,DateAdded,LastOpened,Status,Notes
+      const rowStatus = row[10] || ''; // Status is column K (index 10)
       const key = `${rowUrl}||${rowName}`;
 
       if (!activeLockKeys.has(key) && rowStatus !== 'Expired') {
         // Row index in sheet is idx + 2 (1-based + header row)
+        // Status is column K (11th column, index 10)
         batchUpdates.push({
-          range: `History!L${idx + 2}`,
+          range: `History!K${idx + 2}`,
           values: [['Expired']]
         });
+        expiredRowIndices.push(idx + 2);
       }
     });
 
@@ -4901,6 +4905,33 @@ async function gdriveExportNow() {
           })
         }
       );
+
+      // Color expired rows light red/pink on History tab
+      if (expiredRowIndices.length > 0) {
+        const colorRequests = expiredRowIndices.map(rowIdx => ({
+          repeatCell: {
+            range: {
+              sheetId: 0,
+              startRowIndex: rowIdx - 1,
+              endRowIndex: rowIdx,
+              startColumnIndex: 0,
+              endColumnIndex: 12
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.96, green: 0.80, blue: 0.80 }
+              }
+            },
+            fields: 'userEnteredFormat.backgroundColor'
+          }
+        }));
+
+        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: colorRequests })
+        });
+      }
     }
 
     // ---- Refresh ACTIVE SCHEDULES tab (full replace) ----
