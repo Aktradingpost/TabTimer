@@ -3,235 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TabTimer Privacy Policy</title>
+  <title>Privacy Policy — TabTimer Pro</title>
+  <meta name="description" content="TabTimer Pro Privacy Policy. Your data stays on your device. We collect nothing.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #e06c2a;
+      --orange-dark: #c45a20;
+      --orange-light: #fed7aa;
+      --cream: #fefaf4;
+      --dark: #1a1208;
+      --dark2: #2d1f0a;
+      --mid: #78350f;
+      --soft: #92400e;
+      --text: #3d2008;
+      --muted: #a16207;
+      --border: #fde68a;
+      --white: #ffffff;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f9f7f4;
-      color: #2d2d2d;
-      line-height: 1.7;
+      font-family: 'Open Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
     }
+
+    /* HEADER */
     header {
-      background: #1a1a1a;
-      padding: 18px 40px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(254,250,244,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    header a {
-      color: #fff;
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: 1.25rem; color: var(--dark);
       text-decoration: none;
-      font-size: 1.2rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
     }
-    header span {
-      color: #e8703a;
+    .logo span { color: var(--orange); }
+
+    /* PAGE */
+    .page-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 100px 2rem 80px;
     }
-    .container {
-      max-width: 780px;
-      margin: 50px auto;
-      padding: 0 24px 60px;
+
+    .page-label {
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 0.75rem;
     }
     h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-      color: #1a1a1a;
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      color: var(--dark); line-height: 1.2;
+      margin-bottom: 0.5rem;
     }
-    .updated {
-      font-size: 0.9rem;
-      color: #888;
-      margin-bottom: 36px;
+    .effective {
+      font-size: 0.875rem; color: var(--muted);
+      margin-bottom: 2.5rem;
     }
+
+    .section {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 28px 32px;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Google Limited Use — highlighted */
+    .section.google-limited {
+      border-color: var(--orange);
+      border-width: 2px;
+      background: #fffbf5;
+    }
+    .google-limited-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--orange-light); color: var(--orange-dark);
+      padding: 4px 12px; border-radius: 100px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
     h2 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin: 36px 0 10px;
-      padding-bottom: 6px;
-      border-bottom: 2px solid #e8703a;
+      font-family: 'Nunito', sans-serif; font-weight: 700;
+      font-size: 1.15rem; color: var(--dark);
+      margin-bottom: 0.75rem;
     }
-    h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #444;
-      margin: 20px 0 8px;
+    p {
+      font-size: 0.95rem; color: var(--soft);
+      line-height: 1.75; font-weight: 300;
+      margin-bottom: 0.75rem;
     }
-    p { margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
     ul {
-      margin: 8px 0 16px 20px;
+      margin: 0.5rem 0 0.75rem 1.25rem;
     }
-    ul li { margin-bottom: 6px; }
-    strong { color: #1a1a1a; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 12px 0 20px;
-      font-size: 0.95rem;
+    li {
+      font-size: 0.95rem; color: var(--soft);
+      line-height: 1.75; font-weight: 300;
+      margin-bottom: 0.25rem;
     }
-    th {
-      background: #1a1a1a;
-      color: #fff;
-      padding: 10px 14px;
-      text-align: left;
-    }
-    td {
-      padding: 10px 14px;
-      border-bottom: 1px solid #e5e5e5;
-    }
-    tr:nth-child(even) td { background: #f3f1ee; }
-    code {
-      background: #eee;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.9rem;
-    }
-    .summary-box {
-      background: #fff;
-      border: 1px solid #e5e5e5;
-      border-left: 4px solid #e8703a;
-      border-radius: 8px;
-      padding: 20px 24px;
-      margin-top: 36px;
-    }
-    .summary-box h2 {
-      border-bottom: none;
-      margin-top: 0;
-      margin-bottom: 12px;
-    }
-    .summary-box ul { list-style: none; margin-left: 0; }
-    .summary-box ul li::before { content: "✅ "; }
+    a { color: var(--orange); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* FOOTER */
     footer {
+      background: var(--dark2);
+      padding: 32px 2rem;
       text-align: center;
-      padding: 30px;
-      font-size: 0.85rem;
-      color: #aaa;
-      border-top: 1px solid #e5e5e5;
     }
-    footer a { color: #e8703a; text-decoration: none; }
+    footer p { font-size: 0.8rem; color: rgba(255,255,255,0.4); }
+    footer a { color: var(--orange); text-decoration: none; }
   </style>
 </head>
 <body>
 
 <header>
-  <a href="https://aktradingpost.github.io/TabTimer/"><span>⏱</span> Tab Timer Pro</a>
+  <a href="/" class="logo">
+    <span>🕐</span>
+    Tab<span>Timer</span> Pro
+  </a>
 </header>
 
-<div class="container">
+<div class="page-wrap">
+  <div class="page-label">Legal</div>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last Updated: February 17, 2026</p>
+  <p class="effective">Effective date: March 31, 2026 &nbsp;·&nbsp; TabTimer Pro</p>
 
-  <h2>Overview</h2>
-  <p>TabTimer ("the Extension") is a Chrome browser extension that schedules websites to open automatically at specific times. This privacy policy explains how TabTimer handles your data.</p>
+  <!-- OVERVIEW -->
+  <div class="section">
+    <h2>Overview</h2>
+    <p>TabTimer Pro ("TabTimer", "we", "our") is a browser extension for Chrome, Firefox, and Edge that schedules websites to open automatically. This policy explains what data we handle, how we handle it, and your rights.</p>
+    <p>The short version: <strong>we collect nothing, and all your data stays on your device.</strong></p>
+  </div>
 
-  <h2>Data Collection</h2>
-
-  <h3>What We DON'T Collect</h3>
-  <p>TabTimer does <strong>NOT</strong> collect, transmit, or share:</p>
-  <ul>
-    <li>Your browsing history</li>
-    <li>Your scheduled URLs</li>
-    <li>Your personal information</li>
-    <li>Your usage patterns</li>
-    <li>Any analytics or telemetry data</li>
-    <li>Cookies or tracking information</li>
-  </ul>
-
-  <h3>What We DO Store (Locally Only)</h3>
-  <p>All data is stored <strong>locally on your device</strong> using Chrome's built-in storage API:</p>
-  <ul>
-    <li><strong>Scheduled URLs</strong> – The websites you choose to schedule</li>
-    <li><strong>Schedule settings</strong> – Times, categories, repeat options, notes</li>
-    <li><strong>Preferences</strong> – Theme, notification settings, timezone</li>
-    <li><strong>License key</strong> – If you purchase Premium (stored locally for validation)</li>
-    <li><strong>Backup data</strong> – If you use the auto-backup feature</li>
-  </ul>
-  <p>This data <strong>never leaves your device</strong> except when:</p>
-  <ul>
-    <li>You manually export a backup file</li>
-    <li>You use Cloud Sync to export data (you control where the file goes)</li>
-  </ul>
-
-  <h2>License Validation</h2>
-  <p>If you purchase a Premium license:</p>
-  <ul>
-    <li>Your license key is validated once against our server</li>
-    <li>Only the license key is transmitted (no personal data)</li>
-    <li>The validation result is cached locally</li>
-    <li>No ongoing communication with external servers</li>
-  </ul>
-
-  <h2>Permissions Explained</h2>
-  <p>TabTimer requests the following Chrome permissions:</p>
-  <table>
-    <tr><th>Permission</th><th>Why We Need It</th></tr>
-    <tr><td><code>storage</code></td><td>Save your schedules and settings locally</td></tr>
-    <tr><td><code>alarms</code></td><td>Trigger scheduled tab openings</td></tr>
-    <tr><td><code>tabs</code></td><td>Open new tabs at scheduled times</td></tr>
-    <tr><td><code>notifications</code></td><td>Show desktop notifications when tabs open</td></tr>
-    <tr><td><code>contextMenus</code></td><td>Right-click menu to schedule pages</td></tr>
-    <tr><td><code>bookmarks</code></td><td>Import schedules from bookmark folders (Premium)</td></tr>
-    <tr><td><code>offscreen</code></td><td>Play notification sounds reliably</td></tr>
-  </table>
-
-  <h2>Third-Party Services</h2>
-  <p>TabTimer does not use any third-party analytics, advertising, or tracking services.</p>
-  <p>The only external resource used:</p>
-  <ul>
-    <li><strong>SheetJS library</strong> (cdnjs.cloudflare.com) – Loaded only when importing Excel files, used to parse .xlsx files locally</li>
-  </ul>
-
-  <h2>Data Security</h2>
-  <ul>
-    <li>All data is stored using Chrome's secure storage API</li>
-    <li>Data is sandboxed within the extension</li>
-    <li>No data is transmitted over the network (except license validation)</li>
-    <li>You can delete all data at any time via Chrome's extension settings</li>
-  </ul>
-
-  <h2>Your Rights</h2>
-  <p>You have complete control over your data:</p>
-  <ul>
-    <li><strong>Export</strong> – Download all your data as a JSON file anytime</li>
-    <li><strong>Delete</strong> – Clear all data via <code>chrome://extensions/</code> → TabTimer → Clear site data</li>
-    <li><strong>Review</strong> – All data is visible in the extension's management page</li>
-  </ul>
-
-  <h2>Children's Privacy</h2>
-  <p>TabTimer does not knowingly collect any information from children under 13 years of age.</p>
-
-  <h2>Changes to This Policy</h2>
-  <p>We may update this privacy policy from time to time. Changes will be noted with an updated "Last Updated" date at the top of this document.</p>
-
-  <h2>Open Source</h2>
-  <p>TabTimer's code is available for review on GitHub. You can verify our privacy practices by examining the source code.</p>
-
-  <h2>Contact</h2>
-  <p>If you have questions about this privacy policy:</p>
-  <ul>
-    <li><strong>Email:</strong> TabTimerPro@gmail.com</li>
-    <li><strong>GitHub:</strong> <a href="https://github.com/Aktradingpost/TabTimer" target="_blank">Open an issue on our repository</a></li>
-  </ul>
-
-  <div class="summary-box">
-    <h2>Summary</h2>
+  <!-- DATA WE DON'T COLLECT -->
+  <div class="section">
+    <h2>Data We Do Not Collect</h2>
+    <p>TabTimer does not collect, transmit, store, or share any of the following:</p>
     <ul>
-      <li>All data stored locally on your device</li>
-      <li>No tracking or analytics</li>
-      <li>No data sold or shared</li>
-      <li>You control your data completely</li>
-      <li>Open source and auditable</li>
+      <li>Personal identifiers (name, email address, phone number, etc.)</li>
+      <li>Browsing history or the URLs you schedule</li>
+      <li>Usage analytics or telemetry</li>
+      <li>Device information or IP addresses</li>
+      <li>Cookies or tracking identifiers of any kind</li>
     </ul>
+  </div>
+
+  <!-- LOCAL STORAGE -->
+  <div class="section">
+    <h2>Local Data Storage</h2>
+    <p>All schedule data you create in TabTimer (URLs, times, repeat settings, etc.) is stored locally on your device using the browser's built-in <code>chrome.storage</code> / <code>browser.storage</code> API. This data never leaves your browser.</p>
+    <p>If you use the optional Google Drive backup feature (Chrome only), your schedule data is saved to your own Google Drive account. TabTimer accesses only the files it creates — it does not read any other Drive content.</p>
+  </div>
+
+  <!-- GOOGLE LIMITED USE -->
+  <div class="section google-limited">
+    <div class="google-limited-label">🔑 Google API — Limited Use Disclosure</div>
+    <h2>Google API Services — Limited Use Policy</h2>
+    <p>TabTimer Pro's use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+    <p>Specifically:</p>
+    <ul>
+      <li>TabTimer only requests access to Google Drive in order to save and restore your schedule backup file.</li>
+      <li>We do not use Google user data for any purpose other than this backup and restore functionality.</li>
+      <li>We do not transfer Google user data to third parties.</li>
+      <li>We do not use Google user data for advertising or to train machine learning models.</li>
+      <li>We do not allow humans to read your Google user data unless required by law or you have given us explicit permission.</li>
+    </ul>
+  </div>
+
+  <!-- THIRD PARTIES -->
+  <div class="section">
+    <h2>Third-Party Services</h2>
+    <p>TabTimer does not integrate with any analytics, advertising, or data-broker services. The extension makes no external network requests except for the optional Google Drive backup feature described above.</p>
+  </div>
+
+  <!-- CHILDREN -->
+  <div class="section">
+    <h2>Children's Privacy</h2>
+    <p>TabTimer is not directed at children under the age of 13, and we do not knowingly collect any data from children.</p>
+  </div>
+
+  <!-- CHANGES -->
+  <div class="section">
+    <h2>Changes to This Policy</h2>
+    <p>If we make material changes to this policy, we will update the effective date above and post the updated policy at this URL. Continued use of TabTimer after changes are posted constitutes your acceptance of the updated policy.</p>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="section">
+    <h2>Contact</h2>
+    <p>Questions about this privacy policy? Open an issue on our <a href="https://github.com/Aktradingpost/TabTimer/issues" target="_blank" rel="noopener">GitHub repository</a> or contact us via the Chrome Web Store listing.</p>
   </div>
 </div>
 
 <footer>
-  &copy; 2026 TabTimer &nbsp;|&nbsp;
-  <a href="https://aktradingpost.github.io/TabTimer/">Home</a> &nbsp;|&nbsp;
-  <a href="https://github.com/Aktradingpost/TabTimer">GitHub</a>
+  <p>&copy; 2026 TabTimer Pro &nbsp;·&nbsp; <a href="/">Home</a> &nbsp;·&nbsp; Privacy Policy</p>
 </footer>
 
 </body>
