@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabTimer",
-  "version": "2.8.25",
+  "version": "2.8.26",
   "description": "Smart Website Scheduler - Schedule websites to open automatically at specific times. Free forever with optional Premium features!",
   "permissions": [
     "storage",

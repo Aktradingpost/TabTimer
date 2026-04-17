@@ -2,6 +2,13 @@
 
 ---
 
+## v2.8.26 — March 2026
+
+### Bug Fixes
+- **Fixed "Leave a Review" link** — corrected extension ID in the sidebar review link, Settings page review card, and uninstall page so all review links now point to the correct Chrome Web Store listing
+
+---
+
 ## v2.8.25 — March 2026
 
 ### Bug Fixes
