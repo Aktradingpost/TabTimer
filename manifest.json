@@ -24,7 +24,8 @@
   "host_permissions": [
     "https://sheets.googleapis.com/",
     "https://www.googleapis.com/",
-    "https://oauth2.googleapis.com/"
+    "https://oauth2.googleapis.com/",
+    "https://api.web3forms.com/"
   ],
   "background": {
     "service_worker": "service_worker.js"

@@ -6,6 +6,7 @@
 
 ### Bug Fixes
 - **Fixed "Leave a Review" link** — corrected extension ID in the sidebar review link, Settings page review card, and uninstall page so all review links now point to the correct Chrome Web Store listing
+- **Fixed uninstall feedback form** — replaced broken mailto link with Web3Forms so feedback is delivered directly to TabTimerPro@gmail.com without requiring a default email app
 
 ---
 

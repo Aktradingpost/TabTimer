@@ -549,17 +549,24 @@
       btn.disabled = true;
       btn.textContent = 'Sending...';
 
-      // Send feedback via mailto to TabTimerPro@gmail.com
-      const subject = encodeURIComponent('TabTimer Uninstall Feedback — ' + reason);
-      const bodyText = 
-        'Reason: ' + reason +
-        '\nRating: ' + rating + '/5' +
-        '\n\nComments:\n' + (comments || '(none)') +
-        '\n\nContact: ' + (email || '(not provided)');
-      const body = encodeURIComponent(bodyText);
-
-      // Open mailto - sends feedback to your inbox
-      window.open('mailto:TabTimerPro@gmail.com?subject=' + subject + '&body=' + body);
+      // Send feedback via Web3Forms to TabTimerPro@gmail.com
+      try {
+        await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_key: '2dc10261-e06a-4a4f-8c8c-1ee0b6aa4f69',
+            subject: 'TabTimer Uninstall Feedback — ' + reason,
+            from_name: 'TabTimer Uninstall',
+            reason: reason,
+            rating: rating + '/5',
+            comments: comments || '(none)',
+            contact: email || '(not provided)'
+          })
+        });
+      } catch(e) {
+        // Silently fail — still show thank you screen
+      }
 
       // Show thank you screen
       document.getElementById('feedbackForm').style.display = 'none';
