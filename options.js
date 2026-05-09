@@ -4659,109 +4659,143 @@ async function gdriveGetToken() {
 
 async function gdriveCreateOrFindSheet(token) {
   try {
-    // Search for existing TabTimer History sheet
+    // Search for existing TabTimer History sheet using Drive API (drive.file scope compatible)
+    // Note: drive.file scope only lets us find files THIS app created, which is exactly what we want
     const searchResp = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name%3D'TabTimer History' and mimeType%3D'application/vnd.google-apps.spreadsheet' and trashed%3Dfalse&fields=files(id,webViewLink)`,
+      `https://www.googleapis.com/drive/v3/files?q=name%3D'TabTimer%20History'%20and%20mimeType%3D'application%2Fvnd.google-apps.spreadsheet'%20and%20trashed%3Dfalse&fields=files(id,webViewLink)`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     const searchData = await searchResp.json();
 
     if (searchData.files && searchData.files.length > 0) {
-      // Found existing sheet
+      // Found existing sheet created by this app
       const existing = searchData.files[0];
       return { success: true, sheetId: existing.id, sheetUrl: existing.webViewLink };
     }
 
-    // Create new spreadsheet
-    const createResp = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+    // Create new Google Sheet using the Drive API (works with drive.file scope — no spreadsheets scope needed)
+    const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        properties: { title: 'TabTimer History' },
-        sheets: [
+        name: 'TabTimer History',
+        mimeType: 'application/vnd.google-apps.spreadsheet'
+      })
+    });
+
+    const createData = await createResp.json();
+    if (!createData.id) {
+      return { success: false, error: 'Failed to create spreadsheet: ' + JSON.stringify(createData) };
+    }
+
+    const newSheetId = createData.id;
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${newSheetId}`;
+
+    // Now use the Sheets API to set up tabs, headers, and formatting
+    // This is allowed because drive.file covers files our app created
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}:batchUpdate`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        requests: [
+          // Rename Sheet1 → History
           {
-            properties: { sheetId: 0, title: 'History', index: 0 },
-            data: [{
-              startRow: 0, startColumn: 0,
-              rowData: [{
-                values: [
-                  'Name', 'URL', 'Category', 'Repeat Type', 'Schedule Time',
-                  'Expiration Date', 'Expire Time', 'Open Count', 'Date Added',
-                  'Last Opened', 'Status', 'Notes'
-                ].map(v => ({
-                  userEnteredValue: { stringValue: v },
-                  userEnteredFormat: {
-                    backgroundColor: { red: 0.78, green: 0.85, blue: 0.95 },
-                    textFormat: { bold: true, foregroundColor: { red: 0.1, green: 0.1, blue: 0.2 } }
-                  }
-                }))
-              }]
-            }]
+            updateSheetProperties: {
+              properties: { sheetId: 0, title: 'History' },
+              fields: 'title'
+            }
           },
+          // Add Active Schedules tab
           {
-            properties: { sheetId: 1, title: 'Active Schedules', index: 1 },
-            data: [{
-              startRow: 0, startColumn: 0,
-              rowData: [{
-                values: [
-                  'Name', 'URL', 'Category', 'Repeat Type', 'Schedule Time',
-                  'Expiration Date', 'Expire Time', 'Open Count', 'Date Added',
-                  'Last Opened', 'Status', 'Notes'
-                ].map(v => ({
-                  userEnteredValue: { stringValue: v },
-                  userEnteredFormat: {
-                    backgroundColor: { red: 0.78, green: 0.85, blue: 0.95 },
-                    textFormat: { bold: true, foregroundColor: { red: 0.1, green: 0.1, blue: 0.2 } }
-                  }
-                }))
-              }]
-            }]
+            addSheet: {
+              properties: { title: 'Active Schedules', index: 1 }
+            }
           }
         ]
       })
     });
 
-    const createData = await createResp.json();
-    if (createData.spreadsheetId) {
-      const newSheetId = createData.spreadsheetId;
+    // Write headers to History tab
+    const headers = ['Name', 'URL', 'Category', 'Repeat Type', 'Schedule Time',
+      'Expiration Date', 'Expire Time', 'Open Count', 'Date Added',
+      'Last Opened', 'Status', 'Notes'];
 
-      // Format the new sheet — freeze header rows only (columns auto-sized after data export)
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}:batchUpdate`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          requests: [
-            // Freeze the header row on History tab
-            {
-              updateSheetProperties: {
-                properties: { sheetId: 0, gridProperties: { frozenRowCount: 1, frozenColumnCount: 1 } },
-                fields: 'gridProperties.frozenRowCount,gridProperties.frozenColumnCount'
-              }
-            },
-            // Freeze the header row on Active Schedules tab
-            {
-              updateSheetProperties: {
-                properties: { sheetId: 1, gridProperties: { frozenRowCount: 1, frozenColumnCount: 1 } },
-                fields: 'gridProperties.frozenRowCount,gridProperties.frozenColumnCount'
-              }
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}/values/History!A1:L1?valueInputOption=RAW`,
+      {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: [headers] })
+      }
+    );
+
+    // Write headers to Active Schedules tab
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}/values/Active%20Schedules!A1:L1?valueInputOption=RAW`,
+      {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: [headers] })
+      }
+    );
+
+    // Apply formatting: header colors, freeze rows, freeze columns
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}:batchUpdate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [
+          // Style History header row
+          {
+            repeatCell: {
+              range: { sheetId: 0, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 12 },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: { red: 0.78, green: 0.85, blue: 0.95 },
+                  textFormat: { bold: true, foregroundColor: { red: 0.1, green: 0.1, blue: 0.2 } }
+                }
+              },
+              fields: 'userEnteredFormat(backgroundColor,textFormat)'
             }
-          ]
-        })
-      });
+          },
+          // Style Active Schedules header row (sheetId 1 from addSheet)
+          {
+            repeatCell: {
+              range: { sheetId: 1, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 12 },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: { red: 0.78, green: 0.85, blue: 0.95 },
+                  textFormat: { bold: true, foregroundColor: { red: 0.1, green: 0.1, blue: 0.2 } }
+                }
+              },
+              fields: 'userEnteredFormat(backgroundColor,textFormat)'
+            }
+          },
+          // Freeze header row + first column on History tab
+          {
+            updateSheetProperties: {
+              properties: { sheetId: 0, gridProperties: { frozenRowCount: 1, frozenColumnCount: 1 } },
+              fields: 'gridProperties.frozenRowCount,gridProperties.frozenColumnCount'
+            }
+          },
+          // Freeze header row + first column on Active Schedules tab
+          {
+            updateSheetProperties: {
+              properties: { sheetId: 1, gridProperties: { frozenRowCount: 1, frozenColumnCount: 1 } },
+              fields: 'gridProperties.frozenRowCount,gridProperties.frozenColumnCount'
+            }
+          }
+        ]
+      })
+    });
 
-      return {
-        success: true,
-        sheetId: newSheetId,
-        sheetUrl: createData.spreadsheetUrl
-      };
-    }
-    return { success: false, error: 'Failed to create spreadsheet: ' + JSON.stringify(createData) };
+    return { success: true, sheetId: newSheetId, sheetUrl };
   } catch (err) {
     return { success: false, error: err.message };
   }

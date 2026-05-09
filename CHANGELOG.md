@@ -2,11 +2,11 @@
 
 ---
 
-## v2.8.26 — March 2026
+## v2.8.27 — May 2026
 
-### Bug Fixes
-- **Fixed "Leave a Review" link** — corrected extension ID in the sidebar review link, Settings page review card, and uninstall page so all review links now point to the correct Chrome Web Store listing
-- **Fixed uninstall feedback form** — replaced broken mailto link with Web3Forms so feedback is delivered directly to TabTimerPro@gmail.com without requiring a default email app
+### Security & Compliance
+- **Switched Google Drive scope from `spreadsheets` to `drive.file` only** — TabTimer no longer requests the broad `/auth/spreadsheets` scope which grants access to all Google Sheets in a user's account. It now uses only `drive.file`, the most limited Google permission available, which restricts access to only the single TabTimer History sheet the app itself created. This eliminates the "unverified app" OAuth warning and fully satisfies Google's OAuth verification requirements. The Google Drive History feature works identically from the user's perspective — schedules are still exported to a real, formatted Google Sheet in your Drive.
+- **Sheet creation now uses Drive API** — the spreadsheet is created via the Drive API (`POST /drive/v3/files`) instead of the Sheets API, which is what allows the `drive.file` scope to work. All subsequent read/write operations still use the Sheets API as before.
 
 ---
 

@@ -4,9 +4,17 @@
 
 TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, and anyone who needs websites to open automatically on a schedule. No more missed entries. No more forgetting.
 
-[![Version](https://img.shields.io/badge/version-2.8.22-orange)](https://github.com/yourusername/tabtimer)
+[![Version](https://img.shields.io/badge/version-2.8.27-orange)](https://github.com/Aktradingpost/TabTimer)
 [![License](https://img.shields.io/badge/license-Proprietary-blue)]()
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Published-green)](https://chrome.google.com/webstore)
+
+---
+
+## What's New in v2.8.27
+
+- **Google Drive scope simplified to `drive.file` only** — TabTimer no longer requests broad access to all your Google Sheets. It now uses only the `drive.file` scope, which is the minimal permission needed to create and manage the single TabTimer History sheet in your own Drive. This removes the "unsafe app" warning and fully complies with Google's OAuth verification requirements.
+- The Google Drive History feature works exactly the same as before — your schedules are still exported to a real, readable Google Sheet in your Drive. Only the behind-the-scenes API approach changed.
+- No action needed for existing users — just update the extension and reconnect your Google account if prompted.
 
 ---
 
@@ -22,7 +30,7 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 - Backup and restore all your schedules
 - Manage all schedules from one dashboard
 - Category filters (Daily, Weekly, Monthly, Once, Other)
-- **Google Drive History** — connect your Google account and manually export your full schedule history to a Google Sheet at any time (free)
+- **Google Drive History** — connect your Google account and export your full schedule history to a Google Sheet in your Drive at any time (free)
 - **Expire Time field** — set an exact date and time for any schedule to be silently deleted
 - **Take focus when opening** — per-schedule option to bring a tab to the front regardless of global background setting
 - **Auto health check** — stuck schedules are silently repaired every time the management page opens
@@ -45,6 +53,7 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 - Advance reminder notification (seconds before opening)
 - Never Lock mode — opens tab without blocking your browsing
 - **Auto-sync to Google Drive** — syncs immediately on every schedule change plus daily refresh
+- **Import from Drive** — restore your schedules from your Google Sheet on a new computer
 - One-time payment, no subscription ever
 
 ---
@@ -63,19 +72,19 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 1. Download or clone this repository
 2. Open Chrome and go to `chrome://extensions`
 3. Enable **Developer Mode** (top right toggle)
-4. Click **Load unpacked** and select the TabTimer folder
+4. Click **Load unpacked** and select the `TabTimer-v2.8.27` folder
 5. The TabTimer icon will appear in your Chrome toolbar
 
 ---
 
 ## Google Drive History
 
-TabTimer can export your schedule history to a Google Sheet stored in your own Google Drive. This gives you a permanent record of every website you have ever scheduled — including ones that have expired or been deleted — so you can look back months later and see exactly how many times you visited any site.
+TabTimer can export your schedule history to a Google Sheet stored in your own Google Drive. This gives you a permanent, readable record of every website you have ever scheduled — including ones that have expired or been deleted.
 
 ### How it works
 1. Go to **Backup/Sync** in the sidebar and click **Connect Google Account**
-2. Sign in with your Google account — TabTimer will create a sheet called **TabTimer History** in your Drive
-3. Click **Export to Drive Now** any time to update the sheet manually (free)
+2. Sign in with your Google account — TabTimer creates a sheet called **TabTimer History** in your Drive
+3. Click **Export to Drive Now** any time to update the sheet (free)
 4. PRO users can enable **Auto-sync** to have the sheet update automatically every time a schedule changes
 
 ### What gets recorded
@@ -90,6 +99,10 @@ Name, URL, Category, Repeat Type, Schedule Time, Expiration Date, Expire Time, O
 - Header row and first column (Name) are frozen for easy scrolling
 - Columns auto-size to content width after each export
 - URL column is capped at 250px so long URLs do not take over the sheet
+- Expired schedule rows are highlighted in light red for easy scanning
+
+### Google API permissions
+TabTimer uses only the `drive.file` scope — the most limited Google permission available. This means TabTimer can only see the single file it created in your Drive. It cannot read, browse, or access any other files or sheets in your Google account.
 
 ### Reset & Recreate Sheet
 If you need to start fresh, use the **🗑️ Reset & Recreate Sheet** button in the Google Drive History card. This deletes your existing sheet, creates a new one with fresh formatting, and re-exports all your data automatically.
@@ -101,10 +114,10 @@ Your data goes directly from TabTimer to your own personal Google Drive. TabTime
 
 ## Backup & Restore
 
-TabTimer includes a full backup and restore system under **Backup/Sync** in the sidebar.
+TabTimer includes a full local backup and restore system under **Backup/Sync** in the sidebar.
 
-- **Export** saves a JSON file with all your schedules, categories, settings, and license info
-- **Import** restores everything from that file, including custom categories like Mail, Phone, and Unlimited
+- **Export** saves a `.json` file with all your schedules, categories, settings, and license info
+- **Import** restores everything from that file, including custom categories
 - Your premium license is always preserved during import — it will never be overwritten by a backup
 
 ---
@@ -138,14 +151,17 @@ Mon–Sat fires every day of the week except Sunday. This is useful for mail-in 
 **Is my data private?**
 Yes. TabTimer stores all data locally on your device using Chrome's built-in storage. No data is sent to any server. There are no accounts, no tracking, and no ads.
 
+**Why did TabTimer ask for Google permissions?**
+Only if you choose to use the Google Drive History feature. TabTimer requests only the `drive.file` permission — the most limited Google scope available — which only allows access to the single sheet TabTimer itself created. It cannot see any other files in your Google Drive.
+
 ---
 
 ## Pricing
 
 | Plan | Price | Features |
 |------|-------|----------|
-| Free | $0 | Core scheduling, daily/weekly/monthly/once repeat, backup & restore |
-| PRO | $10 one-time | All repeat types, custom categories, notes, bulk import, sound alerts, and more |
+| Free | $0 | Core scheduling, daily/weekly/monthly/once repeat, Google Drive History, backup & restore |
+| PRO | $10 one-time | All repeat types, custom categories, notes, bulk import, auto-sync, sound alerts, and more |
 
 Purchase a PRO license at [tabtimerpro.com](https://tabtimerpro.com) or from the Premium button inside the extension.
 
@@ -155,7 +171,7 @@ Purchase a PRO license at [tabtimerpro.com](https://tabtimerpro.com) or from the
 
 TabTimer does not collect, transmit, or store any personal data on external servers. All schedule data, settings, and license information are stored locally in your browser using `chrome.storage.local`. No analytics, no tracking, no ads.
 
-**Google Drive History (optional feature):** If you choose to connect your Google account and use the Google Drive History feature, your schedule data is sent directly from your browser to your own personal Google Drive using Google's official API. TabTimer does not have access to your Google account beyond creating and updating the single TabTimer History spreadsheet. You can disconnect your Google account at any time from the Backup/Sync section. No schedule data is ever sent to TabTimer's servers — it goes directly to your own Google Drive and nowhere else.
+**Google Drive History (optional feature):** If you choose to connect your Google account, your schedule data is sent directly from your browser to your own personal Google Drive using Google's official API with the `drive.file` scope only. TabTimer can only access the single TabTimer History sheet it created — it cannot read any other files in your Drive. You can disconnect at any time from the Backup/Sync section.
 
 ---
 
@@ -169,4 +185,4 @@ See [CHANGELOG.md](CHANGELOG.md) for the full version history.
 
 Published on the Chrome Web Store by **NestlyTab**.
 
-For support, feature requests, or bug reports, please open an issue on GitHub.
+For support, feature requests, or bug reports, please open an issue on GitHub or visit [tabtimerpro.com](https://tabtimerpro.com).
