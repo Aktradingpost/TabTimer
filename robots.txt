@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /thankyou.html
+Disallow: /welcome.html
+Disallow: /offscreen.html
+
+Sitemap: https://tabtimerpro.com/sitemap.xml
