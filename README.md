@@ -4,11 +4,15 @@
 
 TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, and anyone who needs websites to open automatically on a schedule. No more missed entries. No more forgetting.
 
-[![Version](https://img.shields.io/badge/version-2.8.27-orange)](https://github.com/Aktradingpost/TabTimer)
+[![Version](https://img.shields.io/badge/version-2.8.28-orange)](https://github.com/Aktradingpost/TabTimer)
 [![License](https://img.shields.io/badge/license-Proprietary-blue)]()
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Published-green)](https://chrome.google.com/webstore)
 
 ---
+
+## What's New in v2.8.28
+
+- **Built-in User Guide** — a new "📖 User Guide" link now sits in the sidebar under Tools, between Categories and Backup/Sync. It covers everything TabTimer and TabTimer PRO can do, in plain language, with a worked example for every feature, organized into expandable sections with a jump-to menu at the top.
 
 ## What's New in v2.8.27
 

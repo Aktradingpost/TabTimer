@@ -1304,6 +1304,20 @@ function setupEventListeners() {
     });
   });
   
+  // User Guide - jump menu links expand + scroll to their section
+  document.querySelectorAll('#view-guide [data-guide-jump]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById(link.dataset.guideJump);
+      if (!target) return;
+      // Close any other open sections, open the target one
+      document.querySelectorAll('#view-guide .guide-section').forEach(sec => {
+        sec.open = (sec === target);
+      });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
   // Premium locked items - show upgrade prompt
   document.querySelectorAll('.sidebar-item[data-action="showPremiumPrompt"]').forEach(item => {
     item.addEventListener('click', (e) => {

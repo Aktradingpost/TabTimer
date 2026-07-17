@@ -651,6 +651,110 @@
     #tabtimer-dont-show:hover {
       background: #eff6ff !important;
     }
+
+    /* ===== User Guide ===== */
+    .guide-toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .guide-toc a {
+      display: block;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .guide-toc a:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+    .guide-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .guide-section > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .guide-section > summary::-webkit-details-marker { display: none; }
+    .guide-section > summary::after {
+      content: '+';
+      font-size: 18px;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-left: 12px;
+    }
+    .guide-section[open] > summary::after { content: '\2212'; }
+    .guide-section > summary:hover { background: var(--primary-light); }
+    .guide-body {
+      padding: 4px 18px 18px 18px;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .guide-body h4 {
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .guide-body h4:first-child { margin-top: 4px; }
+    .guide-body p { margin-bottom: 8px; }
+    .guide-body ul { padding-left: 20px; margin-bottom: 8px; }
+    .guide-body li { margin-bottom: 4px; }
+    .guide-example {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 13px;
+      color: #166534;
+    }
+    body.dark .guide-example {
+      background: rgba(34,197,94,0.12);
+      color: #86efac;
+    }
+    .guide-example strong { color: inherit; }
+    .guide-pro-tag {
+      display: inline-block;
+      background: gold;
+      color: #1e293b;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .guide-free-tag {
+      display: inline-block;
+      background: #22c55e;
+      color: white;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -697,6 +801,7 @@
         <div class="sidebar-title">Tools</div>
         <a class="sidebar-item premium-feature" data-view="categories">&#127991; Categories <span class="premium-badge" style="font-size: 10px; padding: 2px 6px; margin-left: 4px;">PRO</span></a>
         <a class="sidebar-item premium-locked" data-action="showPremiumPrompt" style="opacity: 0.6;">&#127991; Categories <span style="font-size: 10px; padding: 2px 6px; margin-left: 4px; background: #94a3b8; border-radius: 4px;">🔒</span></a>
+        <a class="sidebar-item" data-view="guide">&#128214; User Guide</a>
         <a class="sidebar-item" data-view="backup">&#128190; Backup/Sync</a>
         <a class="sidebar-item" data-view="settings">&#9881; Settings</a>
         <a class="sidebar-item" href="https://chromewebstore.google.com/detail/tabtimer-smart-website-sc/icpbkkfikopgdjppdhblbdkljliccpbf/reviews" target="_blank" style="color: #fbbf24; margin-top: 4px;">&#11088; Leave a Review</a>
@@ -1232,6 +1337,227 @@
         </div>
       </div>
       
+      <div id="view-guide" class="view-content" style="display: none;">
+        <div class="card">
+          <h3 class="card-title">&#128214; TabTimer User Guide</h3>
+          <p style="color: var(--text-muted); margin-top: 6px;">Everything TabTimer and TabTimer PRO can do, in plain language, with real examples. Click any topic below to jump to it, or click a section title to expand it.</p>
+          <div class="guide-toc">
+            <a data-guide-jump="guide-start">&#128640; Getting Started</a>
+            <a data-guide-jump="guide-add">&#10133; Adding a Schedule</a>
+            <a data-guide-jump="guide-repeat">&#128257; Repeat Types Explained</a>
+            <a data-guide-jump="guide-bulk">&#128229; Bulk Import</a>
+            <a data-guide-jump="guide-manage">&#128203; Managing Your Schedules</a>
+            <a data-guide-jump="guide-categories">&#127991; Categories</a>
+            <a data-guide-jump="guide-backup">&#128190; Backup &amp; Sync</a>
+            <a data-guide-jump="guide-settings">&#9881; Settings</a>
+            <a data-guide-jump="guide-pro">&#10024; Free vs. PRO &amp; License</a>
+            <a data-guide-jump="guide-faq">&#10067; Frequently Asked Questions</a>
+          </div>
+        </div>
+
+        <details class="guide-section" id="guide-start">
+          <summary>&#128640; Getting Started</summary>
+          <div class="guide-body">
+            <p>TabTimer opens websites automatically at the time you choose. You set a website and a time once, and TabTimer takes it from there &mdash; you don't have to remember to open the page yourself.</p>
+            <h4>The toolbar popup</h4>
+            <p>Click the TabTimer icon in your Chrome toolbar to see a small popup with three buttons: <strong>Schedule This Page</strong> (schedules the page you're currently viewing), <strong>Open Management</strong> (opens the full TabTimer dashboard), and <strong>Unschedule This Page</strong> (removes the current page from your schedule). It also shows how many schedules are active, how many repeat, and how many times pages have opened.</p>
+            <h4>Right-click scheduling</h4>
+            <p>You can schedule almost any page without opening the popup at all: right-click anywhere on a webpage and choose <strong>Schedule this page</strong> from the menu.</p>
+            <div class="guide-example"><strong>Example:</strong> You're on a sweepstakes entry page and want it to reopen every morning at 8:00 AM. Right-click the page, choose "Schedule this page," set the time to 8:00 AM, set Repeat to Daily, and click Create. Every day at 8:00 AM the page opens automatically.</div>
+            <h4>Keyboard shortcuts</h4>
+            <ul>
+              <li><strong>Alt+L</strong> &mdash; Quick-schedule the current page (Tomorrow at 7 AM, or 1 hour from now)</li>
+              <li><strong>Alt+U</strong> &mdash; Unschedule/unlock the current page</li>
+              <li><strong>Alt+O</strong> &mdash; Open the full Management dashboard</li>
+            </ul>
+            <p style="color: var(--text-muted); font-size: 12.5px;">Tip: TabTimer only opens tabs while Chrome is running and you're using the same Chrome profile you scheduled from. If Chrome was closed at the scheduled time, the tab will still open when you reopen Chrome, as long as you're within the "grace period" set in Settings (1 hour by default).</p>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-add">
+          <summary>&#10133; Adding a Schedule</summary>
+          <div class="guide-body">
+            <p>Click <strong>Add New</strong> in the sidebar to create a schedule from scratch. Here's what each field does:</p>
+            <h4>URL (required)</h4>
+            <p>The web address you want to open, e.g. <code>https://example.com</code>.</p>
+            <h4>Name</h4>
+            <p>A label to help you recognize the schedule later. It's optional, but it has a special power: if the name starts with a date in <strong>YYYY-MM-DD</strong> format, TabTimer will automatically delete that schedule after that date passes.</p>
+            <div class="guide-example"><strong>Example:</strong> Name a schedule "2026-08-15 Contest Entry" and TabTimer will silently remove it after August 15, 2026, so you don't end up with old, expired schedules cluttering your list.</div>
+            <h4>Expire Time</h4>
+            <p>An optional exact date and time to silently delete the schedule &mdash; independent of any date in the Name field. Leave this blank if the schedule doesn't need to expire.</p>
+            <div class="guide-example"><strong>Example:</strong> You want a schedule to stop running after a giveaway ends at 5:00 PM on March 31. Set Expire Time to 2026-03-31 5:00 PM, and TabTimer removes the schedule automatically at that moment &mdash; no need to remember to delete it yourself.</div>
+            <h4>Category</h4>
+            <p>Groups your schedules so you can filter them in the sidebar. TabTimer includes five built-in categories: Daily, Weekly, Monthly, Once, and Other. <span class="guide-pro-tag">PRO</span> users can also create their own custom categories (see the Categories section below).</p>
+            <h4>Color <span class="guide-pro-tag">PRO</span></h4>
+            <p>Give a schedule a color dot so it stands out visually in your list.</p>
+            <h4>Open at (required)</h4>
+            <p>The date and time the page should first open.</p>
+            <h4>Repeat Schedule</h4>
+            <p>Choose how often the schedule repeats. See the full list and examples in "Repeat Types Explained" below. Anything under the "&#11088; Premium" group requires PRO.</p>
+            <h4>Auto re-lock after unlocking</h4>
+            <p>When a scheduled page opens, TabTimer can "lock" your browsing on that tab until you dismiss it (unless you choose Never Lock). This setting controls how long after you unlock the page it takes to automatically re-lock, in case you want a reminder to come back to it.</p>
+            <h4>Auto-close tab after opening</h4>
+            <p>Automatically closes the tab a set number of minutes after it opens, so you don't end up with dozens of leftover tabs.</p>
+            <h4>&#128266; Play sound when tab opens</h4>
+            <p>Plays a short sound alert whenever this schedule fires, in case you're not looking at Chrome at the time.</p>
+            <h4>&#127919; Take focus when opening</h4>
+            <p>Normally new tabs open in the background so they don't interrupt what you're doing. Checking this box makes this specific tab jump to the front when it opens, overriding your global background setting.</p>
+            <h4>&#128221; Notes <span class="guide-pro-tag">PRO</span></h4>
+            <p>A free-text box to paste entry instructions or reminders that you want to see again whenever you look at this schedule.</p>
+            <div class="guide-example"><strong>Example:</strong> In Notes you could paste "Answer skill-testing question, then click Submit" so you remember the exact steps every time this page reopens.</div>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-repeat">
+          <summary>&#128257; Repeat Types Explained</summary>
+          <div class="guide-body">
+            <p>TabTimer offers many ways to repeat a schedule. The free plan includes the essentials; PRO unlocks the rest.</p>
+            <h4>Included free <span class="guide-free-tag">FREE</span></h4>
+            <ul>
+              <li><strong>No Repeat (One-time)</strong> &mdash; opens once at the date/time you set, then is done.</li>
+              <li><strong>Daily</strong> &mdash; opens every day at the same time.</li>
+              <li><strong>Weekly</strong> &mdash; opens once a week on the same day and time.</li>
+              <li><strong>Monthly</strong> &mdash; opens once a month on the same date and time.</li>
+              <li><strong>Yearly</strong> &mdash; opens once a year on the same date and time.</li>
+            </ul>
+            <h4>PRO repeat types <span class="guide-pro-tag">PRO</span></h4>
+            <ul>
+              <li><strong>Weekdays (Mon&ndash;Fri)</strong> &mdash; skips Saturday and Sunday.</li>
+              <li><strong>Weekends (Sat&ndash;Sun)</strong> &mdash; only Saturday and Sunday.</li>
+              <li><strong>Mon&ndash;Sat (No Sundays)</strong> &mdash; every day except Sunday.</li>
+              <li><strong>Every 2 Weeks</strong> / <strong>Every 3 Weeks</strong> &mdash; skips the in-between week(s).</li>
+              <li><strong>Every 2 Months</strong> / <strong>Quarterly</strong> / <strong>Every 6 Months</strong> &mdash; longer recurring gaps.</li>
+              <li><strong>Leap Year (Every 4 Years)</strong> &mdash; for the rare schedule that only matters on a leap year date.</li>
+              <li><strong>Every X Minutes</strong> / <strong>Every X Hours</strong> &mdash; repeats rapidly throughout the day; you choose the interval.</li>
+              <li><strong>Custom Days Interval</strong> &mdash; repeats every X days, where you pick the number.</li>
+              <li><strong>Specific Dates</strong> &mdash; a hand-picked list of exact dates, not a recurring pattern at all.</li>
+            </ul>
+            <div class="guide-example"><strong>Example (Mon&ndash;Sat):</strong> Many mail-in sweepstakes require your entry to be postmarked on a weekday or Saturday, but never Sunday. Choose "Mon&ndash;Sat" and TabTimer will open the entry page every day except Sunday, automatically.</div>
+            <div class="guide-example"><strong>Example (Every X Minutes):</strong> You want a page to reopen every 10 minutes for the next hour to increase your chances of catching a limited drop. Choose "Every X Minutes," enter 10, and TabTimer reopens the page every 10 minutes.</div>
+            <div class="guide-example"><strong>Example (Specific Dates):</strong> A contest only accepts entries on the 1st, 15th, and last day of the month. Choose "Specific Dates" and type <code>2026-08-01, 2026-08-15, 2026-08-31</code> &mdash; TabTimer opens the page on exactly those three days and no others.</div>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-bulk">
+          <summary>&#128229; Bulk Import <span class="guide-pro-tag">PRO</span></summary>
+          <div class="guide-body">
+            <p>Instead of adding schedules one at a time, Bulk Import lets you create many schedules at once, three different ways.</p>
+            <h4>From Text</h4>
+            <p>Paste a list of URLs, one per line. TabTimer schedules all of them with the same category and repeat type, staggering their start times a few seconds or minutes apart so they don't all try to open at once.</p>
+            <div class="guide-example"><strong>Example:</strong> Add a specific expire time to one URL by adding a pipe (<code>|</code>) after it: <code>https://example.com | 2026-03-31 09:00</code>. That one link will silently delete itself on March 31 at 9:00 AM, even though the rest of the list doesn't expire.</div>
+            <h4>From CSV/Excel</h4>
+            <p>Upload a spreadsheet of links. The simplest version is just one URL per row in column A with no header row at all. If you want more control, use column headers: <code>url</code> (required), and optionally <code>name</code>, <code>category</code>, <code>time</code>, <code>date</code>, <code>recurring</code>, <code>repeat</code>, and <code>notes</code>. Click "Download template CSV" for a ready-made starting file.</p>
+            <h4>From Bookmarks</h4>
+            <p>Pick any Chrome bookmark folder and TabTimer turns every bookmark in it into a schedule. If a bookmark's title contains a date, TabTimer will ask if you'd like to set a specific expire time for it.</p>
+            <div class="guide-example"><strong>Example:</strong> You keep a bookmark folder called "Weekly Deals" with 12 links. Go to Bulk Import &rarr; From Bookmarks, select that folder, choose a start time and category, and all 12 links become schedules in one click, opening one after another a minute apart.</div>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-manage">
+          <summary>&#128203; Managing Your Schedules</summary>
+          <div class="guide-body">
+            <p>The <strong>All Schedules</strong> view is your main dashboard, showing every schedule you've created.</p>
+            <h4>Search &amp; filter</h4>
+            <p>Use the search box to find a schedule by name or URL. Use the category dropdown to show only one category, and the sort dropdown to order by time, name, or URL. Click the &#128269; magnifying glass for Advanced Search, which lets you filter by date range and status (active, opened, recurring, one-time only).</p>
+            <h4>Selecting multiple schedules</h4>
+            <p>Click the checkbox on any schedule (or "Select All") to select multiple schedules at once. A toolbar appears at the bottom with bulk actions:</p>
+            <ul>
+              <li><strong>Resolve URLs</strong> &mdash; checks the selected links still work.</li>
+              <li><strong>Open All Selected</strong> &mdash; opens every selected page right now.</li>
+              <li><strong>Reschedule</strong> <span class="guide-pro-tag">PRO</span> &mdash; moves all selected schedules to a new date/time at once, with staggered timing.</li>
+              <li><strong>Shift Time</strong> <span class="guide-pro-tag">PRO</span> &mdash; shifts all selected schedules earlier or later by a set amount, keeping their spacing.</li>
+              <li><strong>Duplicate</strong> &mdash; makes a copy of the selected schedules.</li>
+              <li><strong>Delete</strong> &mdash; removes the selected schedules.</li>
+            </ul>
+            <div class="guide-example"><strong>Example:</strong> Daylight saving time just changed and 15 of your schedules are now an hour off. Select all 15, click "Shift Time," enter 1 hour, and every one of them moves forward together instead of editing each one by hand.</div>
+            <h4>Reordering</h4>
+            <p>When Sort is set to "Custom Order," you can drag and drop schedules in the list to put them in whatever order makes sense to you.</p>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-categories">
+          <summary>&#127991; Categories <span class="guide-pro-tag">PRO</span></summary>
+          <div class="guide-body">
+            <p>Categories help you organize and filter schedules. TabTimer starts with five built-in categories: Daily, Weekly, Monthly, Once, and Other &mdash; these are free and available to everyone as filters.</p>
+            <p>PRO users can go further by creating their own custom categories with a name, an emoji, and a color, and by editing the emoji, name, or color of any category (including the built-in ones) at any time.</p>
+            <div class="guide-example"><strong>Example:</strong> You track mail-in sweepstakes separately from phone-in ones. Go to Categories &rarr; "+ Add Category," name it "Mail," pick a &#128231; emoji, and choose a color. It now appears in your sidebar so you can filter to see only your mail-in entries.</div>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-backup">
+          <summary>&#128190; Backup &amp; Sync</summary>
+          <div class="guide-body">
+            <h4>&#128202; Google Drive History <span class="guide-free-tag">FREE</span></h4>
+            <p>Connect your Google account and TabTimer creates a "TabTimer History" spreadsheet in your own Google Drive. It keeps a permanent, readable record of every website you've ever scheduled, even ones that have expired or been deleted. Click "Export to Drive Now" any time to update it manually &mdash; this is free for everyone.</p>
+            <p><span class="guide-pro-tag">PRO</span> users can turn on <strong>Auto-sync</strong>, which updates the sheet automatically every time a schedule changes, plus once a day as a safety net, and can also use <strong>Import from Drive</strong> to restore schedules from that sheet onto a new computer.</p>
+            <div class="guide-example"><strong>Example:</strong> You got a new laptop and want your schedule history. Sign into the same Google account in TabTimer on the new computer, connect Google Drive, and (with PRO) click "Import from Drive" to bring back your active schedules from the sheet.</div>
+            <p style="font-size:12.5px; color: var(--text-muted);">TabTimer only ever accesses the single sheet it created &mdash; never any other file in your Drive.</p>
+            <h4>&#128228; Device Transfer <span class="guide-pro-tag">PRO</span></h4>
+            <p>A manual way to move your schedules to another computer: click "Export for Transfer" to download a file, copy that file to your other device (email, USB, AirDrop, etc.), then click "Import from Transfer" there. This is a one-time transfer, not automatic syncing.</p>
+            <h4>&#127973; Schedule Health Check</h4>
+            <p>Click "Run Health Check" any time you suspect a schedule is stuck or not opening as expected. TabTimer scans for and repairs common problems automatically. This also runs quietly every time you open the Management page.</p>
+            <h4>&#9200; Auto-Backup</h4>
+            <p>Turn this on to have TabTimer save a backup file automatically on a schedule you choose (daily, weekly, or monthly), and set how many recent backups to keep.</p>
+            <h4>&#128190; Manual Backup</h4>
+            <p><strong>Export All</strong> downloads a single JSON file containing every schedule, category, and setting. <strong>Import Backup</strong> restores everything from that file. Your PRO license is always kept safe during an import and will never be overwritten by an older backup.</p>
+            <div class="guide-example"><strong>Example:</strong> Before trying a big change to your schedules, click "Export All" to save a safety copy. If anything goes wrong, click "Import Backup," choose that file, and everything is restored exactly as it was.</div>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-settings">
+          <summary>&#9881; Settings</summary>
+          <div class="guide-body">
+            <p>The Settings page controls how TabTimer behaves overall (not tied to any one schedule).</p>
+            <ul>
+              <li><strong>Enable notifications</strong> &mdash; shows a desktop notification when a scheduled tab opens.</li>
+              <li><strong>Notification reminder</strong> &mdash; get a heads-up before a tab opens. <span class="guide-example" style="display:block; margin:6px 0;"><strong>Example:</strong> set this to 10 and you'll be notified 10 seconds before the tab opens. Set to 0 to turn it off.</span></li>
+              <li><strong>Auto-delete after expiration date in name</strong> &mdash; enables the "YYYY-MM-DD" name auto-delete behavior described in Adding a Schedule.</li>
+              <li><strong>Open tabs in background</strong> &mdash; new tabs won't steal focus from what you're doing, unless a schedule has "Take focus" checked.</li>
+              <li><strong>Grace period for missed schedules</strong> &mdash; how long after a missed time TabTimer will still open the tab when you return. <span class="guide-example" style="display:block; margin:6px 0;"><strong>Example:</strong> with the default 1 hour grace period, if Chrome was closed and a tab was due at 9:00 AM, opening Chrome at 9:40 AM will still open it; opening Chrome at 11:00 AM will not, and a recurring schedule instead moves to its next occurrence.</span></li>
+              <li><strong>Stagger interval for missed tabs</strong> &mdash; when several tabs are due at once after Chrome was closed, this spaces out how quickly they open one after another so your browser doesn't get flooded at once.</li>
+              <li><strong>Default category</strong> &mdash; the category pre-selected whenever you add a new schedule.</li>
+              <li><strong>Default auto re-lock after unlocking</strong> &mdash; the default "auto re-lock" value applied to new schedules.</li>
+              <li><strong>Your Timezone</strong> &mdash; make sure this matches where you live so schedule and expiration times are calculated correctly.</li>
+              <li><strong>Expiration time</strong> &mdash; the time of day that name-based (YYYY-MM-DD) auto-deletes happen on their date.</li>
+              <li><strong>Show "How TabTimer Works" notice</strong> &mdash; brings back the blue info banner at the top of All Schedules if you previously dismissed it.</li>
+              <li><strong>Test Notification</strong> &mdash; sends a sample notification so you can confirm notifications are working.</li>
+              <li><strong>Repair Stuck Schedules</strong> &mdash; manually runs the same repair used by Health Check, useful if a schedule isn't opening when expected.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-pro">
+          <summary>&#10024; Free vs. PRO &amp; License</summary>
+          <div class="guide-body">
+            <p>TabTimer is free to use for core scheduling. TabTimer PRO is a one-time $10 purchase &mdash; not a subscription &mdash; that unlocks the advanced features referenced throughout this guide (marked with a gold <span class="guide-pro-tag">PRO</span> tag).</p>
+            <h4>What's included free</h4>
+            <p>Unlimited schedules, Daily/Weekly/Monthly/Once/Yearly repeat, right-click and quick scheduling, light/dark theme, local backup and restore, the five built-in categories, Google Drive History (manual export), Expire Time, Take Focus, and automatic health checks.</p>
+            <h4>What PRO adds</h4>
+            <p>All the extra repeat types (Weekdays, Mon&ndash;Sat, Every X Minutes/Hours, Custom Days, Specific Dates, and more), custom categories, Notes, Bulk Import, Auto-sync and Import from Drive, Device Transfer, sound notifications, advance reminders, Never Lock mode, and bulk Reschedule/Shift Time.</p>
+            <h4>Trying PRO</h4>
+            <p>Click <strong>&#10024; Try Premium</strong> in the top-right header to start a free 7-day trial &mdash; no credit card required. When you're ready to buy, the same window offers a one-time $10 lifetime purchase.</p>
+            <h4>Activating a license key</h4>
+            <p>If you already purchased PRO, open the same Premium window and enter your license key (format <code>TTXX-XXXX-XXXX-XXXX</code>) under "Already have a license key?" then click <strong>Activate License</strong>. Your key is saved to your Google/Chrome account, so it's restored automatically if you ever uninstall and reinstall TabTimer.</p>
+          </div>
+        </details>
+
+        <details class="guide-section" id="guide-faq">
+          <summary>&#10067; Frequently Asked Questions</summary>
+          <div class="guide-body">
+            <h4>Does TabTimer work when Chrome is closed?</h4>
+            <p>No. Chrome has to be running for TabTimer to open tabs at the scheduled time. If Chrome was closed, the tab opens as soon as you reopen it, within your grace period.</p>
+            <h4>What happens if I miss a scheduled time?</h4>
+            <p>TabTimer's built-in health check repairs missed or stuck schedules automatically. One-time schedules that have passed are marked complete; recurring schedules reset to their next valid time.</p>
+            <h4>Will importing a backup erase my license?</h4>
+            <p>No. Your active PRO license is always preserved during an import.</p>
+            <h4>Is my data private?</h4>
+            <p>Yes. Everything is stored locally on your device using Chrome's built-in storage. There's no TabTimer server, no accounts, no tracking, and no ads. The only optional exception is Google Drive History, which sends data directly from your browser to your own Google Drive &mdash; never to TabTimer.</p>
+            <h4>Why did TabTimer ask for Google permissions?</h4>
+            <p>Only if you choose to use Google Drive History. TabTimer requests the most limited Google permission available (<code>drive.file</code>), which only lets it see the single sheet it created itself &mdash; it cannot see any other file in your Drive.</p>
+          </div>
+        </details>
+      </div>
+
       <div id="view-backup" class="view-content" style="display: none;">
 
         <!-- Google Drive History Card -->

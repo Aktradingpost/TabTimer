@@ -2,6 +2,13 @@
 
 ---
 
+## v2.8.28 — July 2026
+
+### New Features
+- **Built-in User Guide** — new "📖 User Guide" sidebar link under Tools (between Categories and Backup/Sync) opens a full guide covering everything TabTimer and TabTimer PRO can do. Organized into expandable sections with a jump-to menu, written in plain language, with a worked example for every feature.
+
+---
+
 ## v2.8.27 — May 2026
 
 ### Security & Compliance
