@@ -2,6 +2,34 @@
 
 ---
 
+## v2.8.32 — July 2026
+
+### Documentation
+- **Added Reset & Recreate Sheet to the User Guide** — the Backup & Sync section of the built-in 📖 User Guide now explains the "🗑️ Reset & Recreate Sheet" button (Google Drive History card), including a worked example, so it's no longer missing from the guide.
+
+---
+
+## v2.8.31 — July 2026
+
+### Bug Fixes
+- **Fixed 💤 Lazy Load opening blank tabs** — tabs opened with Lazy Load checked were showing up as empty "Untitled" / about:blank tabs instead of the real page. The cause: the tab was being put to sleep before it finished its very first load, which wiped out its URL. Lazy Load now lets each tab load once in the background, then puts it to sleep right after — so clicking the tab later correctly shows the real page instead of a blank one.
+
+---
+
+## v2.8.30 — July 2026
+
+### Bug Fixes
+- **Fixed Shift+Click sometimes selecting too many cards** — on the Management page, Shift+clicking a single schedule card could unexpectedly select several cards at once, especially right after clearing a selection (Delete, Duplicate, Open All, Reschedule, "Clear," etc.) or changing the sort/filter. The app was still remembering an old, no-longer-selected card as the starting point for the range. Shift+Click now always starts a clean, single-card selection when there's nothing valid to range from, and correctly selects everything between two cards when there is.
+
+---
+
+## v2.8.29 — July 2026
+
+### New Features
+- **💤 Lazy Load (bulk open)** — the "Open All Selected" bulk action on the Management page now has a 💤 Lazy Load checkbox next to it. Check it before clicking "Open All Selected" and the tabs open quietly in the background without actually loading their pages — each one only loads once you click on it. Handy when you're opening a large batch of schedules at once and don't want your computer bogged down loading them all simultaneously.
+
+---
+
 ## v2.8.28 — July 2026
 
 ### New Features

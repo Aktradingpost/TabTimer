@@ -4,11 +4,27 @@
 
 TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, and anyone who needs websites to open automatically on a schedule. No more missed entries. No more forgetting.
 
-[![Version](https://img.shields.io/badge/version-2.8.28-orange)](https://github.com/Aktradingpost/TabTimer)
+[![Version](https://img.shields.io/badge/version-2.8.32-orange)](https://github.com/Aktradingpost/TabTimer)
 [![License](https://img.shields.io/badge/license-Proprietary-blue)]()
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Published-green)](https://chrome.google.com/webstore)
 
 ---
+
+## What's New in v2.8.32
+
+- **User Guide updated** — the Backup & Sync section of the built-in 📖 User Guide now covers the "🗑️ Reset & Recreate Sheet" button, with a plain-language example.
+
+## What's New in v2.8.31
+
+- **Fixed 💤 Lazy Load opening blank tabs** — tabs opened with Lazy Load checked were showing up empty instead of showing the real page. Fixed — each tab now loads once in the background, then goes to sleep, so clicking it later shows the correct page.
+
+## What's New in v2.8.30
+
+- **Fixed Shift+Click over-selecting cards** — Shift+clicking one schedule card on the Management page could sometimes select several extra cards, especially right after clearing a selection or changing the sort/filter. Fixed — Shift+Click now behaves reliably.
+
+## What's New in v2.8.29
+
+- **💤 Lazy Load (bulk open)** — a new checkbox next to "Open All Selected" on the Management page. Check it and your selected tabs open quietly in the background and go to sleep right after loading, so they stop using memory — click a tab any time to view it. Great for opening a big batch of schedules without bogging down your computer.
 
 ## What's New in v2.8.28
 
@@ -76,7 +92,7 @@ TabTimer is a Chrome extension built for sweepstakes enthusiasts, deal hunters, 
 1. Download or clone this repository
 2. Open Chrome and go to `chrome://extensions`
 3. Enable **Developer Mode** (top right toggle)
-4. Click **Load unpacked** and select the `TabTimer-v2.8.27` folder
+4. Click **Load unpacked** and select the `TabTimer-v2.8.32` folder
 5. The TabTimer icon will appear in your Chrome toolbar
 
 ---

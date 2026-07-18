@@ -1460,16 +1460,19 @@
             <h4>Search &amp; filter</h4>
             <p>Use the search box to find a schedule by name or URL. Use the category dropdown to show only one category, and the sort dropdown to order by time, name, or URL. Click the &#128269; magnifying glass for Advanced Search, which lets you filter by date range and status (active, opened, recurring, one-time only).</p>
             <h4>Selecting multiple schedules</h4>
-            <p>Click the checkbox on any schedule (or "Select All") to select multiple schedules at once. A toolbar appears at the bottom with bulk actions:</p>
+            <p>Click the checkbox on any schedule (or "Select All") to select multiple schedules at once. Hold <strong>Ctrl</strong> (or <strong>Cmd</strong> on Mac) and click to add or remove one card at a time. Hold <strong>Shift</strong> and click to select every card between your last click and this one &mdash; handy for grabbing a big block of cards at once. A toolbar appears at the bottom with bulk actions:</p>
             <ul>
               <li><strong>Resolve URLs</strong> &mdash; checks the selected links still work.</li>
               <li><strong>Open All Selected</strong> &mdash; opens every selected page right now.</li>
+              <li><strong>💤 Lazy Load</strong> &mdash; a checkbox next to "Open All Selected." Check it first and each tab opens quietly in the background, loads once, and then goes to sleep &mdash; it stays right there in your tab bar, just not using memory anymore. Click on it any time and it wakes back up showing the real page. Keeps your computer from slowing down when you open a lot of tabs at once.</li>
               <li><strong>Reschedule</strong> <span class="guide-pro-tag">PRO</span> &mdash; moves all selected schedules to a new date/time at once, with staggered timing.</li>
               <li><strong>Shift Time</strong> <span class="guide-pro-tag">PRO</span> &mdash; shifts all selected schedules earlier or later by a set amount, keeping their spacing.</li>
               <li><strong>Duplicate</strong> &mdash; makes a copy of the selected schedules.</li>
               <li><strong>Delete</strong> &mdash; removes the selected schedules.</li>
             </ul>
             <div class="guide-example"><strong>Example:</strong> Daylight saving time just changed and 15 of your schedules are now an hour off. Select all 15, click "Shift Time," enter 1 hour, and every one of them moves forward together instead of editing each one by hand.</div>
+            <div class="guide-example"><strong>Example:</strong> You select 20 schedules to catch up on all at once. Check the 💤 Lazy Load box, then click "Open All Selected." All 20 tabs appear in your tab bar and load once, quietly, in the background &mdash; then each one goes to sleep so your computer stays fast. Click on any tab when you're ready to look at it, and it wakes back up showing the real page.</div>
+            <div class="guide-example"><strong>Example:</strong> You want to select 10 cards in a row. Click card 1 &mdash; just that one is selected. Scroll down and Shift+click card 10, and all 10 cards (1 through 10) become selected at once, ready for a bulk action.</div>
             <h4>Reordering</h4>
             <p>When Sort is set to "Custom Order," you can drag and drop schedules in the list to put them in whatever order makes sense to you.</p>
           </div>
@@ -1492,6 +1495,9 @@
             <p><span class="guide-pro-tag">PRO</span> users can turn on <strong>Auto-sync</strong>, which updates the sheet automatically every time a schedule changes, plus once a day as a safety net, and can also use <strong>Import from Drive</strong> to restore schedules from that sheet onto a new computer.</p>
             <div class="guide-example"><strong>Example:</strong> You got a new laptop and want your schedule history. Sign into the same Google account in TabTimer on the new computer, connect Google Drive, and (with PRO) click "Import from Drive" to bring back your active schedules from the sheet.</div>
             <p style="font-size:12.5px; color: var(--text-muted);">TabTimer only ever accesses the single sheet it created &mdash; never any other file in your Drive.</p>
+            <h4>&#128465;&#65039; Reset &amp; Recreate Sheet</h4>
+            <p>If your Google Sheet ever gets messed up, deleted by accident, or you just want a completely clean copy, click <strong>Reset &amp; Recreate Sheet</strong> in the Google Drive History card. TabTimer deletes the old sheet, creates a brand-new one with fresh formatting, and automatically re-exports all your current schedule data into it.</p>
+            <div class="guide-example"><strong>Example:</strong> You accidentally deleted a bunch of rows in your TabTimer History sheet while cleaning things up in Google Sheets. Instead of trying to fix it by hand, click "Reset &amp; Recreate Sheet." TabTimer builds a fresh sheet from scratch and refills it with your current schedule history, so everything is accurate again.</div>
             <h4>&#128228; Device Transfer <span class="guide-pro-tag">PRO</span></h4>
             <p>A manual way to move your schedules to another computer: click "Export for Transfer" to download a file, copy that file to your other device (email, USB, AirDrop, etc.), then click "Import from Transfer" there. This is a one-time transfer, not automatic syncing.</p>
             <h4>&#127973; Schedule Health Check</h4>
@@ -1905,6 +1911,9 @@
     <span><strong id="selectedCount">0</strong> selected</span>
     <button class="btn btn-secondary btn-sm" id="bulkResolveBtn">🔍 Resolve URLs</button>
     <button class="btn btn-secondary btn-sm" id="bulkOpenAllBtn">Open All Selected</button>
+    <label id="bulkLazyLabel" style="display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;font-size:13px;" title="Open tabs quietly in the background without loading them — click a tab to load it when you're ready">
+      <input type="checkbox" id="bulkLazyLoadChk" style="margin:0;cursor:pointer;"> 💤 Lazy Load
+    </label>
     <button class="btn btn-primary btn-sm" id="bulkRescheduleBtn">📅 Reschedule ⭐</button>
     <button class="btn btn-outline btn-sm" id="bulkShiftTimeBtn">⏱️ Shift Time ⭐</button>
     <button class="btn btn-outline btn-sm" id="bulkDuplicateBtn">Duplicate</button>
